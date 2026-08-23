@@ -1,69 +1,50 @@
-import Image from "next/image";
+import Link from "next/link";
+import { TopBar } from "@/components/TopBar";
+import { stats } from "@/lib/mockData";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <TopBar />
+      <main className="hub">
+        <div className="hub-head">
+          <div className="kicker">CLIENT DEMO · V0.1</div>
+          <h1>Auto-reply chats. Capture leads. Never miss a customer.</h1>
+          <p>
+            Ali Agent handles WhatsApp and website chats with Claude, feeds every lead into one dashboard, and hands off to your team when it matters. Below — a live walk-through of what your call center gets on day one.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="hub-stats">
+          <div className="hub-stat"><div className="num">{stats.handledToday}</div><div className="label">HANDLED · TODAY</div></div>
+          <div className="hub-stat"><div className="num">{stats.wonToday}</div><div className="label">WON · TODAY</div></div>
+          <div className="hub-stat"><div className="num">{stats.escalatedToday}</div><div className="label">ESCALATED</div></div>
+          <div className="hub-stat"><div className="num">{stats.revenueToday}</div><div className="label">REVENUE · TODAY</div></div>
+        </div>
+
+        <div className="hub-grid">
+          <Link href="/admin" className="hub-card">
+            <div className="idx">01 / 03</div>
+            <h3>Admin dashboard</h3>
+            <p>Where you and the call center staff live. See every live conversation, take over from the bot, review lead scoring, and browse the day.</p>
+            <div className="cta"><span>OPEN DASHBOARD</span><span>→</span></div>
+          </Link>
+
+          <Link href="/form" className="hub-card">
+            <div className="idx">02 / 03</div>
+            <h3>Public lead form</h3>
+            <p>Multi-step form for ads and landing pages. Keyboard-first, mobile-first. Every submission lands in the dashboard within seconds.</p>
+            <div className="cta"><span>TRY THE FORM</span><span>→</span></div>
+          </Link>
+
+          <Link href="/widget" className="hub-card">
+            <div className="idx">03 / 03</div>
+            <h3>Chat widget</h3>
+            <p>One script tag drops it into any Ali site. Streams answers from Claude, hands off to human on demand, remembers every conversation.</p>
+            <div className="cta"><span>SEE IT IN CONTEXT</span><span>→</span></div>
+          </Link>
         </div>
       </main>
-    </div>
+    </>
   );
 }
