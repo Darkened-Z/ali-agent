@@ -138,31 +138,31 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "⚡",
+        icon: "chip",
         title: "Apple A19 Pro Silicon",
         desc: "Breakthrough speed and industry-leading efficiency built for Apple Intelligence.",
       },
       {
-        icon: "📸",
+        icon: "camera",
         title: "48MP Fusion Pro Camera",
         desc: "Next-generation 5x optical tetraprism telephoto with 4K 120fps Dolby Vision video.",
       },
       {
-        icon: "🛡️",
+        icon: "shield",
         title: "Grade 5 Titanium Frame",
         desc: "Lightweight aerospace titanium with contoured edges and latest Ceramic Shield front.",
       },
       {
-        icon: "🔋",
+        icon: "battery",
         title: "All-Day Pro Battery",
         desc: "Up to 29 hours video playback with fast MagSafe & Qi2 wireless charging.",
       },
     ],
     whatsInTheBox: [
-      { name: "Apple iPhone 18 Pro", icon: "📱" },
-      { name: "USB-C to USB-C Woven Cable (1m)", icon: "🔌" },
-      { name: "Quick Start Guide & SIM Pin", icon: "📄" },
-      { name: "100% Recycled Three Packaging", icon: "📦" },
+      { name: "Apple iPhone 18 Pro", icon: "device" },
+      { name: "USB-C to USB-C Woven Cable (1m)", icon: "cable" },
+      { name: "Quick Start Guide & SIM Pin", icon: "guide" },
+      { name: "100% Recycled Three Packaging", icon: "box" },
     ],
     specs: [
       {
@@ -276,30 +276,30 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "⚡",
+        icon: "chip",
         title: "Apple A19 Bionic",
         desc: "Ultra-fast processor built for Apple Intelligence and buttery-smooth multitasking.",
       },
       {
-        icon: "📸",
+        icon: "camera",
         title: "48MP Dual Fusion Camera",
         desc: "2x optical-quality telephoto with computational portrait lighting.",
       },
       {
-        icon: "🛡️",
+        icon: "shield",
         title: "Colour-Infused Glass",
         desc: "Tough textured matte glass back and aerospace-grade aluminium frame.",
       },
       {
-        icon: "✨",
+        icon: "display",
         title: "Dynamic Island",
         desc: "Bubbles up alerts and Live Activities so you never miss a beat.",
       },
     ],
     whatsInTheBox: [
-      { name: "Apple iPhone 17", icon: "📱" },
-      { name: "USB-C Charge Cable", icon: "🔌" },
-      { name: "SIM Tool & Documentation", icon: "📄" },
+      { name: "Apple iPhone 17", icon: "device" },
+      { name: "USB-C Charge Cable", icon: "cable" },
+      { name: "SIM Tool & Documentation", icon: "guide" },
     ],
     specs: [
       {
@@ -398,30 +398,30 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "🤖",
+        icon: "ai",
         title: "Galaxy AI Built-in",
         desc: "Instant live translations, photo editing assist, and Circle to Search with Google.",
       },
       {
-        icon: "🌟",
+        icon: "display",
         title: "Dynamic AMOLED 2X",
         desc: "6.2-inch FHD+ with Vision Booster and adaptive 1-120Hz refresh rate.",
       },
       {
-        icon: "📸",
+        icon: "camera",
         title: "50MP Triple Camera",
         desc: "Nightography AI enhancement and 3x optical zoom telephoto.",
       },
       {
-        icon: "🔋",
+        icon: "battery",
         title: "Intelligent All-Day Battery",
         desc: "4,000mAh battery optimized by machine learning for maximum endurance.",
       },
     ],
     whatsInTheBox: [
-      { name: "Samsung Galaxy S26", icon: "📱" },
-      { name: "USB-C to USB-C Cable", icon: "🔌" },
-      { name: "Ejection Pin & Quick Guide", icon: "📄" },
+      { name: "Samsung Galaxy S26", icon: "device" },
+      { name: "USB-C to USB-C Cable", icon: "cable" },
+      { name: "Ejection Pin & Quick Guide", icon: "guide" },
     ],
     specs: [
       {
@@ -512,31 +512,31 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "🖋️",
+        icon: "pen",
         title: "Built-in S Pen",
         desc: "Write, sketch and navigate with pinpoint precision directly on screen.",
       },
       {
-        icon: "📸",
+        icon: "camera",
         title: "200MP Quad Tele System",
         desc: "Up to 100x Space Zoom with AI zoom stabilization and 5x optical periscope.",
       },
       {
-        icon: "🛡️",
+        icon: "shield",
         title: "Corning Gorilla Armor",
         desc: "Reduces reflections by 75% while providing enhanced scratch resistance.",
       },
       {
-        icon: "⚡",
+        icon: "chip",
         title: "Snapdragon 8 Gen 5 for Galaxy",
         desc: "Industry-leading ray tracing and NPU performance for next-gen gaming.",
       },
     ],
     whatsInTheBox: [
-      { name: "Samsung Galaxy S26 Ultra", icon: "📱" },
-      { name: "Integrated S Pen", icon: "🖋️" },
-      { name: "USB-C to USB-C Cable", icon: "🔌" },
-      { name: "SIM Eject Pin", icon: "📄" },
+      { name: "Samsung Galaxy S26 Ultra", icon: "device" },
+      { name: "Integrated S Pen", icon: "pen" },
+      { name: "USB-C to USB-C Cable", icon: "cable" },
+      { name: "SIM Eject Pin", icon: "guide" },
     ],
     specs: [
       {
@@ -636,30 +636,30 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "🧠",
+        icon: "chip",
         title: "Google Tensor G5",
         desc: "Engineered specifically for Google AI and Google Gemini generative tools.",
       },
       {
-        icon: "📷",
+        icon: "camera",
         title: "Best Take & Magic Editor",
         desc: "Fix blinking eyes, remove photo distractions, and re-imagine backgrounds.",
       },
       {
-        icon: "🛡️",
+        icon: "shield",
         title: "7 Years of OS Updates",
         desc: "Guaranteed Android feature drops and security patches until 2033.",
       },
       {
-        icon: "🔋",
+        icon: "battery",
         title: "24-Hour Adaptive Battery",
         desc: "Learns your favorite apps to prioritize power where you need it most.",
       },
     ],
     whatsInTheBox: [
-      { name: "Google Pixel 11", icon: "📱" },
-      { name: "1m USB-C to USB-C Cable (USB 2.0)", icon: "🔌" },
-      { name: "Quick Switch Adaptor & SIM Tool", icon: "📄" },
+      { name: "Google Pixel 11", icon: "device" },
+      { name: "1m USB-C to USB-C Cable (USB 2.0)", icon: "cable" },
+      { name: "Quick Switch Adaptor & SIM Tool", icon: "guide" },
     ],
     specs: [
       {
@@ -732,25 +732,25 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "📖",
+        icon: "fold",
         title: "Ultra-Thin 9.2mm Folded",
         desc: "Slimmer than most traditional bar phones with aerospace titanium hinge.",
       },
       {
-        icon: "🖥️",
+        icon: "display",
         title: "Dual 120Hz LTPO Displays",
         desc: "7.92-inch inner foldable screen plus 6.43-inch outer display with 4320Hz PWM dimming.",
       },
       {
-        icon: "🔋",
+        icon: "battery",
         title: "5,150mAh Silicon-Carbon Battery",
         desc: "Massive battery that fits into an ultra-thin chassis with 66W SuperCharge.",
       },
     ],
     whatsInTheBox: [
-      { name: "HONOR Magic V6 Foldable", icon: "📱" },
-      { name: "66W SuperCharge Power Brick", icon: "🔌" },
-      { name: "Protective Aramid Case & Cable", icon: "🛡️" },
+      { name: "HONOR Magic V6 Foldable", icon: "device" },
+      { name: "66W SuperCharge Power Brick", icon: "charger" },
+      { name: "Protective Aramid Case & Cable", icon: "case" },
     ],
     specs: [
       {
@@ -813,25 +813,25 @@ export const DEVICE_CATALOGUE: Record<string, DeviceDetail> = {
     ],
     highlights: [
       {
-        icon: "🪞",
+        icon: "flip",
         title: "4.0\" External pOLED Display",
         desc: "Respond to messages, play games, and take selfies without opening the phone.",
       },
       {
-        icon: "📸",
+        icon: "camera",
         title: "50MP Dual Camera with Moto AI",
         desc: "AI Action Shot and adaptive stabilization for shake-free videos.",
       },
       {
-        icon: "⚡",
+        icon: "chip",
         title: "Snapdragon 8s Gen 3",
         desc: "Blazing fast performance paired with 45W TurboPower charging.",
       },
     ],
     whatsInTheBox: [
-      { name: "Motorola Razr 70 Ultra", icon: "📱" },
-      { name: "TurboPower 68W Charger", icon: "🔌" },
-      { name: "Premium Vegan Leather Case", icon: "👜" },
+      { name: "Motorola Razr 70 Ultra", icon: "device" },
+      { name: "TurboPower 68W Charger", icon: "charger" },
+      { name: "Premium Vegan Leather Case", icon: "case" },
     ],
     specs: [
       {
@@ -920,14 +920,14 @@ export function getDeviceBySlug(slug: string): DeviceDetail {
       },
     ],
     highlights: [
-      { icon: "⚡", title: "Next-Gen 5G Power", desc: "Fast downloads and lag-free streaming anywhere." },
-      { icon: "📸", title: "Advanced Pro Camera", desc: "Stunning low-light photography and 4K video recording." },
-      { icon: "🔋", title: "Long-lasting Battery", desc: "Power through your entire day without worry." },
+      { icon: "chip", title: "Next-Gen 5G Power", desc: "Fast downloads and lag-free streaming anywhere." },
+      { icon: "camera", title: "Advanced Pro Camera", desc: "Stunning low-light photography and 4K video recording." },
+      { icon: "battery", title: "Long-lasting Battery", desc: "Power through your entire day without worry." },
     ],
     whatsInTheBox: [
-      { name: cleanName, icon: "📱" },
-      { name: "USB-C Fast Charging Cable", icon: "🔌" },
-      { name: "SIM Tool & Guide", icon: "📄" },
+      { name: cleanName, icon: "device" },
+      { name: "USB-C Fast Charging Cable", icon: "cable" },
+      { name: "SIM Tool & Guide", icon: "guide" },
     ],
     specs: [
       {

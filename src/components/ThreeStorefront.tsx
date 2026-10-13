@@ -64,18 +64,127 @@ const POPULAR_SHOWCASE = [
   },
 ];
 
-const QUICK_CATEGORIES: { label: string; icon: string; href?: string; query?: string }[] = [
-  { label: "Pay Monthly phones", icon: "📱", href: "/devices/iphone-18-pro" },
-  { label: "SIM Only Deals", icon: "📶", href: "/sim-only" },
-  { label: "Home Broadband (£18)", icon: "🏠", href: "/broadband" },
-  { label: "iPhone 18 Pro", icon: "🍏", href: "/devices/iphone-18-pro" },
-  { label: "Samsung Galaxy S26", icon: "💫", href: "/devices/samsung-galaxy-s26" },
-  { label: "Google Pixel 11", icon: "🤖", href: "/devices/google-pixel-11" },
-  { label: "Foldables & Flips", icon: "📖", href: "/devices/honor-magic-v6" },
-  { label: "Student Discounts", icon: "🎓", query: "Do you have student discounts on Three?" },
-  { label: "Basket & Checkout", icon: "🛒", href: "/checkout" },
-  { label: "Business plans", icon: "💼", query: "Tell me about business multi-SIM discounts" },
-  { label: "Staff Portal Hub", icon: "🎧", href: "/admin" },
+function QuickCategoryIcon({ iconKey }: { iconKey: string }) {
+  const props = {
+    width: 26,
+    height: 26,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#0f172a",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  switch (iconKey) {
+    case "phone":
+      return (
+        <svg {...props}>
+          <rect x="5" y="2" width="14" height="20" rx="3" />
+          <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+          <line x1="10" y1="4" x2="14" y2="4" />
+        </svg>
+      );
+    case "sim":
+      return (
+        <svg {...props}>
+          <path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
+          <rect x="7" y="10" width="10" height="8" rx="1" />
+          <line x1="12" y1="10" x2="12" y2="18" />
+          <line x1="7" y1="14" x2="17" y2="14" />
+        </svg>
+      );
+    case "broadband":
+      return (
+        <svg {...props}>
+          <rect x="2" y="13" width="20" height="8" rx="2" />
+          <path d="M6 13V6" />
+          <path d="M18 13V6" />
+          <circle cx="6" cy="5" r="1" fill="#0f172a" />
+          <circle cx="18" cy="5" r="1" fill="#0f172a" />
+          <path d="M9 10a5 5 0 0 1 6 0" />
+        </svg>
+      );
+    case "apple":
+      return (
+        <svg {...props}>
+          <path d="M12 20.94c1.88 0 2.93-.87 4.3-.87 1.34 0 2.27.85 4.18.85 2.12 0 3.86-1.92 5.02-4.14-2.88-1.57-2.39-5.7.4-7.07-1.42-2.14-3.7-2.38-4.48-2.38-1.9 0-3.32 1.07-4.32 1.07-1.03 0-2.61-1.04-4.22-1.04-2.22 0-4.31 1.32-5.46 3.32-2.37 4.12-.6 10.26 1.7 10.26z" />
+          <path d="M15.5 2c.2 1.2-.3 2.4-1 3.2-.8.9-2.1 1.5-3.2 1.4-.2-1.2.4-2.4 1.1-3.2.8-.9 2.1-1.5 3.1-1.4z" />
+        </svg>
+      );
+    case "samsung":
+      return (
+        <svg {...props}>
+          <path d="M12 3l1.91 4.88L19 9.8l-4 3.73.96 5.47L12 16.4l-4.96 2.6.96-5.47-4-3.73 5.09-1.92L12 3z" />
+        </svg>
+      );
+    case "pixel":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="4" />
+          <line x1="12" y1="3" x2="12" y2="6" />
+          <line x1="12" y1="18" x2="12" y2="21" />
+        </svg>
+      );
+    case "fold":
+      return (
+        <svg {...props}>
+          <rect x="3" y="3" width="8" height="18" rx="1.5" />
+          <rect x="13" y="3" width="8" height="18" rx="1.5" />
+          <line x1="11" y1="3" x2="13" y2="3" />
+          <line x1="11" y1="21" x2="13" y2="21" />
+        </svg>
+      );
+    case "student":
+      return (
+        <svg {...props}>
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </svg>
+      );
+    case "cart":
+      return (
+        <svg {...props}>
+          <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+        </svg>
+      );
+    case "business":
+      return (
+        <svg {...props}>
+          <rect x="2" y="7" width="20" height="14" rx="2" />
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+        </svg>
+      );
+    case "staff":
+      return (
+        <svg {...props}>
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      );
+  }
+}
+
+const QUICK_CATEGORIES: { label: string; iconKey: string; href?: string; query?: string }[] = [
+  { label: "Pay Monthly phones", iconKey: "phone", href: "/devices/iphone-18-pro" },
+  { label: "SIM Only Deals", iconKey: "sim", href: "/sim-only" },
+  { label: "Home Broadband (£18)", iconKey: "broadband", href: "/broadband" },
+  { label: "iPhone 18 Pro", iconKey: "apple", href: "/devices/iphone-18-pro" },
+  { label: "Samsung Galaxy S26", iconKey: "samsung", href: "/devices/samsung-galaxy-s26" },
+  { label: "Google Pixel 11", iconKey: "pixel", href: "/devices/google-pixel-11" },
+  { label: "Foldables & Flips", iconKey: "fold", href: "/devices/honor-magic-v6" },
+  { label: "Student Discounts", iconKey: "student", query: "Do you have student discounts on Three?" },
+  { label: "Basket & Checkout", iconKey: "cart", href: "/checkout" },
+  { label: "Business plans", iconKey: "business", query: "Tell me about business multi-SIM discounts" },
+  { label: "Staff Portal Hub", iconKey: "staff", href: "/admin" },
 ];
 
 export function ThreeStorefront() {
@@ -171,8 +280,9 @@ export function ThreeStorefront() {
                 </button>
               </li>
               <li>
-                <Link href="/checkout" className="three-pill-utility" style={{ background: "#fdf2f0", borderColor: "#ffaba9", fontWeight: 700 }}>
-                  Checkout ({basket.length}) 🛒
+                <Link href="/checkout" className="three-pill-utility" style={{ background: "#fdf2f0", borderColor: "#ffaba9", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                  Checkout ({basket.length})
                 </Link>
               </li>
               <li>
@@ -193,18 +303,25 @@ export function ThreeStorefront() {
                 className="three-account-btn"
                 onClick={() => setShowMy3(v => !v)}
               >
-                <span className="three-account-icon">👤</span>
+                <span className="three-account-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
                 <span>Login / My3</span>
                 <span style={{ fontSize: 10 }}>▾</span>
               </button>
               {showMy3 && (
                 <div className="three-dropdown-card">
                   <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>My3 Account &amp; Staff</div>
-                  <Link href="/checkout" onClick={() => setShowMy3(false)} style={{ color: "#000", fontWeight: 700 }}>
-                    🛒 Checkout &amp; Order Confirmation (/checkout)
+                  <Link href="/checkout" onClick={() => setShowMy3(false)} style={{ color: "#000", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                    Checkout &amp; Order Confirmation (/checkout)
                   </Link>
-                  <Link href="/admin/orders" onClick={() => setShowMy3(false)}>
-                    📦 Customer Orders Queue (/admin/orders)
+                  <Link href="/admin/orders" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+                    Customer Orders Queue (/admin/orders)
                   </Link>
                   <Link href="/admin" onClick={() => setShowMy3(false)}>
                     Open Call Center Dashboard (/admin)
@@ -231,7 +348,10 @@ export function ThreeStorefront() {
               {basket.length > 0 && (
                 <span className="three-basket-badge">{basket.length}</span>
               )}
-              <span aria-hidden="true">🛒</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
             </button>
           </div>
         </div>
@@ -928,7 +1048,9 @@ export function ThreeStorefront() {
                     className="three-quick-icon-item"
                     style={{ textDecoration: "none", color: "inherit" }}
                   >
-                    <span className="three-quick-icon-circle">{c.icon}</span>
+                    <span className="three-quick-icon-circle">
+                      <QuickCategoryIcon iconKey={c.iconKey} />
+                    </span>
                     <span className="three-quick-icon-label">{c.label}</span>
                   </Link>
                 ) : (
@@ -938,7 +1060,9 @@ export function ThreeStorefront() {
                     className="three-quick-icon-item"
                     onClick={() => askAi(c.query || c.label)}
                   >
-                    <span className="three-quick-icon-circle">{c.icon}</span>
+                    <span className="three-quick-icon-circle">
+                      <QuickCategoryIcon iconKey={c.iconKey} />
+                    </span>
                     <span className="three-quick-icon-label">{c.label}</span>
                   </button>
                 )

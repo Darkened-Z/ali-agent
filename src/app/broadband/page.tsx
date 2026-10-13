@@ -175,8 +175,12 @@ export default function BroadbandPage() {
                   boxShadow: "0 8px 24px rgba(255, 123, 103, 0.15)",
                 }}
               >
-                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: "#000" }}>
-                  📍 Check 5G Broadband availability at your address:
+                <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: "#000", display: "flex", alignItems: "center", gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7b67" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Check 5G Broadband availability at your address:
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <input

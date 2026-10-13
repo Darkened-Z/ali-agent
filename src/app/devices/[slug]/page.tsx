@@ -7,6 +7,195 @@ import { ThreeLogo } from "@/components/ThreeLogo";
 import { ChatWidget } from "@/components/ChatWidget";
 import { getDeviceBySlug, DeviceDetail } from "@/lib/deviceDetails";
 
+function BoxItemIcon({ type, name }: { type: string; name: string }) {
+  const t = (type || "").toLowerCase();
+  const n = (name || "").toLowerCase();
+
+  const props = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (t === "cable" || n.includes("cable") || n.includes("wire") || n.includes("lead")) {
+    return (
+      <svg {...props}>
+        <rect x="7" y="2" width="10" height="5" rx="1" />
+        <path d="M12 7v5a5 5 0 0 1-5 5H4" />
+        <rect x="2" y="15" width="4" height="4" rx="1" />
+        <line x1="10" y1="2" x2="14" y2="2" />
+      </svg>
+    );
+  }
+
+  if (
+    t === "guide" ||
+    n.includes("sim") ||
+    n.includes("pin") ||
+    n.includes("adaptor") ||
+    n.includes("tool") ||
+    n.includes("guide") ||
+    n.includes("manual") ||
+    n.includes("documentation")
+  ) {
+    return (
+      <svg {...props}>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <circle cx="10" cy="14" r="2" />
+        <line x1="10" y1="16" x2="10" y2="19" />
+      </svg>
+    );
+  }
+
+  if (t === "box" || n.includes("packaging") || n.includes("box")) {
+    return (
+      <svg {...props}>
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+    );
+  }
+
+  if (t === "charger" || n.includes("charger") || n.includes("power") || n.includes("brick")) {
+    return (
+      <svg {...props}>
+        <rect x="5" y="8" width="14" height="12" rx="2" />
+        <line x1="9" y1="4" x2="9" y2="8" />
+        <line x1="15" y1="4" x2="15" y2="8" />
+        <circle cx="12" cy="14" r="2" />
+      </svg>
+    );
+  }
+
+  if (t === "pen" || n.includes("pen") || n.includes("stylus")) {
+    return (
+      <svg {...props}>
+        <path d="M12 19l7-7 3 3-7 7-3-3z" />
+        <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z" />
+        <circle cx="11" cy="11" r="2" />
+      </svg>
+    );
+  }
+
+  if (t === "case" || n.includes("case") || n.includes("leather") || n.includes("cover") || n.includes("aramid")) {
+    return (
+      <svg {...props}>
+        <rect x="5" y="2" width="14" height="20" rx="3" />
+        <rect x="7" y="5" width="10" height="14" rx="1.5" strokeDasharray="2 2" />
+      </svg>
+    );
+  }
+
+  // Smartphone (default)
+  return (
+    <svg {...props}>
+      <rect x="5" y="2" width="14" height="20" rx="3" />
+      <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+      <line x1="10" y1="4" x2="14" y2="4" />
+    </svg>
+  );
+}
+
+function HighlightIcon({ type, title }: { type: string; title: string }) {
+  const t = (type || "").toLowerCase();
+  const s = (title || "").toLowerCase();
+
+  const props = {
+    width: 15,
+    height: 15,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (
+    t === "chip" ||
+    s.includes("bionic") ||
+    s.includes("silicon") ||
+    s.includes("tensor") ||
+    s.includes("snapdragon") ||
+    s.includes("processor") ||
+    s.includes("power")
+  ) {
+    return (
+      <svg {...props}>
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <rect x="9" y="9" width="6" height="6" />
+        <line x1="9" y1="1" x2="9" y2="4" />
+        <line x1="15" y1="1" x2="15" y2="4" />
+        <line x1="9" y1="20" x2="9" y2="23" />
+        <line x1="15" y1="20" x2="15" y2="23" />
+        <line x1="20" y1="9" x2="23" y2="9" />
+        <line x1="20" y1="15" x2="23" y2="15" />
+        <line x1="1" y1="9" x2="4" y2="9" />
+        <line x1="1" y1="15" x2="4" y2="15" />
+      </svg>
+    );
+  }
+
+  if (t === "camera" || s.includes("camera") || s.includes("photo") || s.includes("lens") || s.includes("telephoto")) {
+    return (
+      <svg {...props}>
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+        <circle cx="12" cy="13" r="4" />
+      </svg>
+    );
+  }
+
+  if (t === "shield" || s.includes("titanium") || s.includes("armor") || s.includes("glass") || s.includes("ceramic") || s.includes("update")) {
+    return (
+      <svg {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    );
+  }
+
+  if (t === "battery" || s.includes("battery") || s.includes("charge")) {
+    return (
+      <svg {...props}>
+        <rect x="2" y="7" width="16" height="10" rx="2" />
+        <line x1="22" y1="11" x2="22" y2="13" />
+        <line x1="6" y1="11" x2="6" y2="13" />
+        <line x1="10" y1="11" x2="10" y2="13" />
+      </svg>
+    );
+  }
+
+  if (t === "display" || t === "fold" || t === "flip" || s.includes("display") || s.includes("screen") || s.includes("amoled") || s.includes("island")) {
+    return (
+      <svg {...props}>
+        <rect x="4" y="3" width="16" height="18" rx="2" />
+        <line x1="4" y1="9" x2="20" y2="9" />
+      </svg>
+    );
+  }
+
+  if (t === "pen" || s.includes("pen") || s.includes("stylus")) {
+    return (
+      <svg {...props}>
+        <path d="M12 19l7-7 3 3-7 7-3-3z" />
+        <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...props}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 export default function DevicePDPPage({
   params,
 }: {
@@ -266,24 +455,29 @@ export default function DevicePDPPage({
             </div>
 
             {/* Key Feature Tiles under Visualizer */}
-            <div style={{ borderTop: "1px solid #f0e2df", paddingTop: 20 }}>
-              <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", marginBottom: 12 }}>
-                Device Highlights
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 20 }}>
+              <h4 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: "#64748b", marginBottom: 12, fontWeight: 800, fontFamily: "var(--font-jbmono), monospace" }}>
+                Hardware Highlights
               </h4>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {device.highlights.map((h, i) => (
                   <div
                     key={i}
                     style={{
-                      padding: 12,
-                      background: "#faf7f6",
-                      borderRadius: 14,
-                      border: "1px solid #f2e7e5",
+                      padding: "12px 14px",
+                      background: "#ffffff",
+                      borderRadius: 10,
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
                     }}
                   >
-                    <div style={{ fontSize: 18, marginBottom: 4 }}>{h.icon}</div>
-                    <strong style={{ fontSize: 12, display: "block", color: "#111" }}>{h.title}</strong>
-                    <span style={{ fontSize: 11, color: "#666", lineHeight: 1.3, display: "block", marginTop: 2 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ color: "#ff7b67", display: "flex", alignItems: "center" }}>
+                        <HighlightIcon type={h.icon} title={h.title} />
+                      </span>
+                      <strong style={{ fontSize: 12.5, color: "#0f172a", fontWeight: 800 }}>{h.title}</strong>
+                    </div>
+                    <span style={{ fontSize: 11, color: "#64748b", lineHeight: 1.35, display: "block" }}>
                       {h.desc}
                     </span>
                   </div>
@@ -558,8 +752,13 @@ export default function DevicePDPPage({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontWeight: 800, fontSize: 15, color: "#000" }}>
-                  ♻️ Trade in your old phone &amp; save
+                <span style={{ fontWeight: 800, fontSize: 15, color: "#000", display: "flex", alignItems: "center", gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff7b67" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
+                  Trade in your old phone &amp; save
                 </span>
                 <span style={{ background: "#ff7b67", color: "#fff", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 999 }}>
                   Save up to £{device.tradeInBonus}
@@ -703,34 +902,94 @@ export default function DevicePDPPage({
                   justifyContent: "space-between",
                   marginTop: 18,
                   fontSize: 12,
-                  color: "#999",
+                  color: "#cbd5e1",
+                  flexWrap: "wrap",
+                  gap: 8,
                 }}
               >
-                <span>📦 Free Next Working Day Delivery</span>
-                <span>🔄 14-Day Returns</span>
-                <span>📶 30-Day Money Back</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7b67" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Free Next-Day DPD Delivery
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7b67" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  14-Day Money Back Guarantee
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7b67" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  0% APR Three Your Way
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* 5. WHAT'S IN THE BOX */}
-        <section style={{ marginTop: 60, padding: "36px 0", borderTop: "1px solid #eee" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 20 }}>What&apos;s in the box</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+        <section style={{ marginTop: 60, padding: "36px 0", borderTop: "1px solid #e2e8f0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+            <div>
+              <h2 style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", margin: 0 }}>What&apos;s in the box</h2>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
+                Official retail packaging contents provided directly by the manufacturer
+              </p>
+            </div>
+            <span style={{ fontSize: 11, fontFamily: "var(--font-jbmono), monospace", color: "#64748b", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              {device.whatsInTheBox.length} ITEMS INCLUDED
+            </span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
             {device.whatsInTheBox.map((boxItem, idx) => (
               <div
                 key={idx}
                 style={{
-                  background: "#fff",
-                  borderRadius: 16,
-                  border: "1px solid #f0e2df",
-                  padding: "20px 16px",
-                  textAlign: "center",
+                  background: "#ffffff",
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  padding: "18px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
                 }}
               >
-                <div style={{ fontSize: 32, marginBottom: 8 }}>{boxItem.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{boxItem.name}</div>
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 10,
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    color: "#0f172a",
+                  }}
+                >
+                  <BoxItemIcon type={boxItem.icon} name={boxItem.name} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-jbmono), monospace",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: "#ff7b67",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      marginBottom: 3,
+                    }}
+                  >
+                    ITEM {String(idx + 1).padStart(2, "0")}
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: 14, color: "#0f172a", lineHeight: 1.35 }}>
+                    {boxItem.name}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
+                    Included in retail packaging
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -804,34 +1063,42 @@ export default function DevicePDPPage({
         </section>
 
         {/* 7. WHY CHOOSE THREE PERKS */}
-        <section style={{ marginTop: 40, padding: "40px 0", borderTop: "1px solid #eee" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 24 }}>Why buy from Three?</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
-            <div style={{ background: "#fdf2f0", padding: 24, borderRadius: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>📶</div>
-              <h4 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 6px" }}>The Nation&apos;s Network</h4>
-              <p style={{ fontSize: 13, color: "#555", margin: 0, lineHeight: 1.5 }}>
+        <section style={{ marginTop: 40, padding: "40px 0", borderTop: "1px solid #e2e8f0" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 20, color: "#0f172a" }}>Why buy from Three?</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: 22, borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: "#fff5f3", border: "1px solid #ffd8d2", display: "flex", alignItems: "center", justifyContent: "center", color: "#d94830", marginBottom: 14 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V4"/><path d="M22 20v-12"/></svg>
+              </div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px", color: "#0f172a" }}>The Nation&apos;s Network</h4>
+              <p style={{ fontSize: 12.5, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
                 Covering 99% of the UK population with ultra-fast 5G Standalone and 4G connectivity.
               </p>
             </div>
-            <div style={{ background: "#fdf2f0", padding: 24, borderRadius: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>🎁</div>
-              <h4 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 6px" }}>Three+ Rewards</h4>
-              <p style={{ fontSize: 13, color: "#555", margin: 0, lineHeight: 1.5 }}>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: 22, borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: "#fff5f3", border: "1px solid #ffd8d2", display: "flex", alignItems: "center", justifyContent: "center", color: "#d94830", marginBottom: 14 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              </div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px", color: "#0f172a" }}>Three+ Rewards</h4>
+              <p style={{ fontSize: 12.5, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
                 Exclusive weekly treats: £1 Caffè Nero drinks, £3 cinema tickets, and presale access to UK festivals.
               </p>
             </div>
-            <div style={{ background: "#fdf2f0", padding: 24, borderRadius: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>🚚</div>
-              <h4 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 6px" }}>Free Tracked DPD Delivery</h4>
-              <p style={{ fontSize: 13, color: "#555", margin: 0, lineHeight: 1.5 }}>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: 22, borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: "#fff5f3", border: "1px solid #ffd8d2", display: "flex", alignItems: "center", justifyContent: "center", color: "#d94830", marginBottom: 14 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              </div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px", color: "#0f172a" }}>Free Tracked DPD Delivery</h4>
+              <p style={{ fontSize: 12.5, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
                 Order before 8pm Sunday-Friday for free delivery the very next day with a 1-hour delivery slot.
               </p>
             </div>
-            <div style={{ background: "#fdf2f0", padding: 24, borderRadius: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>📲</div>
-              <h4 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 6px" }}>Keep Your Number</h4>
-              <p style={{ fontSize: 13, color: "#555", margin: 0, lineHeight: 1.5 }}>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", padding: 22, borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: "#fff5f3", border: "1px solid #ffd8d2", display: "flex", alignItems: "center", justifyContent: "center", color: "#d94830", marginBottom: 14 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+              </div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px", color: "#0f172a" }}>Keep Your Number</h4>
+              <p style={{ fontSize: 12.5, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
                 Just text PAC to 65075 from your current provider. We&apos;ll switch your number over in 1 working day.
               </p>
             </div>

@@ -552,23 +552,31 @@ export function ConversationsView() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <button
                 className="btn"
-                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left" }}
+                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
                 onClick={() => {
                   setReplyText("Sending the secure checkout link now. Which delivery slot works best for you tomorrow?");
                   composerRef.current?.focus();
                 }}
               >
-                🛒 Send Checkout Link
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                Send Checkout Link
               </button>
               <button
                 className="btn"
-                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left" }}
+                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
                 onClick={() => {
                   setReplyText("To port your number to Three, text PAC to 65075 (free) and reply here with your 9-character code.");
                   composerRef.current?.focus();
                 }}
               >
-                📱 Send PAC Porting Info
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                  <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+                </svg>
+                Send PAC Porting Info
               </button>
             </div>
           </div>
