@@ -381,7 +381,24 @@ export default function SettingsPage() {
               </div>
               <div className="form-row">
                 <div className="label-block"><h4>Webhook URL</h4><p>Paste this into Meta Business webhook config.</p></div>
-                <input readOnly value="/api/whatsapp/webhook" className="mono" />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    readOnly
+                    value={typeof window !== "undefined" ? `${window.location.origin}/api/whatsapp/webhook` : "https://call.goxx.app/api/whatsapp/webhook"}
+                    className="mono"
+                  />
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => {
+                      const url = typeof window !== "undefined" ? `${window.location.origin}/api/whatsapp/webhook` : "https://call.goxx.app/api/whatsapp/webhook";
+                      navigator.clipboard.writeText(url);
+                      alert("Webhook URL copied to clipboard!");
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
               </div>
 
               <div

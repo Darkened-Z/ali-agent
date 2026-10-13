@@ -93,3 +93,35 @@ export async function PATCH(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const clearAll = searchParams.get("all") === "true";
+
+    const db = readDb();
+    if (clearAll) {
+      db.leads = [];
+    } else if (id) {
+      db.leads = db.leads.filter(l => l.id !== id);
+    } else {
+      return Response.json({ error: "Missing id or all parameter" }, { status: 400 });
+    }
+    writeDb(db);
+
+    const sb = getSupabaseAdmin();
+    if (sb) {
+      if (clearAll) {
+        await sb.from("leads").delete().neq("id", "");
+      } else if (id) {
+        await sb.from("leads").delete().eq("id", id);
+      }
+    }
+
+    return Response.json({ success: true, count: db.leads.length });
+  } catch (e) {
+    return Response.json({ error: "Delete failed", detail: String(e) }, { status: 500 });
+  }
+}
+

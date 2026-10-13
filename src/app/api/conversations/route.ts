@@ -161,3 +161,30 @@ export async function PATCH(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const clearAll = searchParams.get("all") === "true";
+
+    const db = readDb();
+    if (clearAll) {
+      db.conversations = [];
+    } else if (id) {
+      db.conversations = db.conversations.filter(c => c.id !== id);
+    } else {
+      return Response.json({ error: "Missing id or all parameter" }, { status: 400 });
+    }
+    writeDb(db);
+
+    return Response.json({
+      success: true,
+      stats: getDashboardStats(db),
+      count: db.conversations.length,
+    });
+  } catch (e) {
+    return Response.json({ error: "Delete failed", detail: String(e) }, { status: 500 });
+  }
+}
+

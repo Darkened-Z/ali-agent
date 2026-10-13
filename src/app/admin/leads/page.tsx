@@ -131,6 +131,20 @@ export default function LeadsPage() {
         </h1>
         <div className="actions">
           <button className="btn" onClick={exportCsv}>Export CSV</button>
+          {list.length > 0 && (
+            <button
+              className="btn"
+              style={{ color: "#d32f2f", borderColor: "#ffcdd2" }}
+              onClick={async () => {
+                if (!confirm("Are you sure you want to clear all leads?")) return;
+                await fetch("/api/leads?all=true", { method: "DELETE" });
+                await loadLeads();
+                window.dispatchEvent(new Event("ali-store-updated"));
+              }}
+            >
+              Clear all
+            </button>
+          )}
           <button className="btn primary" onClick={() => setShowAdd(v => !v)}>
             {showAdd ? "Cancel" : "+ New lead"}
           </button>
@@ -227,25 +241,41 @@ export default function LeadsPage() {
           <thead>
             <tr>
               <th>ID</th><th>Name</th><th>Phone</th><th>City</th>
-              <th>Interest</th><th>Source</th><th>Score</th><th>Status (click to cycle)</th><th>Updated</th>
+              <th>Interest</th><th>Source</th><th>Score</th><th>Status (click to cycle)</th><th>Updated</th><th>Action</th>
             </tr>
           </thead>
           <tbody>
             {visible.map(l => (
-              <tr key={l.id} onClick={() => cycleLeadStatus(l)} title="Click row to cycle lead status">
-                <td><span className="mono">{l.id}</span></td>
-                <td>{l.name}</td>
-                <td><span className="mono">{l.phone}</span></td>
-                <td>{l.city}</td>
-                <td>{l.interest}</td>
-                <td>{l.source}</td>
-                <td><span className="mono" style={{ color: scoreColor(l.score), fontWeight: 700 }}>{l.score}</span></td>
-                <td>
+              <tr key={l.id} style={{ cursor: "pointer" }}>
+                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.id}</span></td>
+                <td onClick={() => cycleLeadStatus(l)}>{l.name}</td>
+                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.phone}</span></td>
+                <td onClick={() => cycleLeadStatus(l)}>{l.city}</td>
+                <td onClick={() => cycleLeadStatus(l)}>{l.interest}</td>
+                <td onClick={() => cycleLeadStatus(l)}>{l.source}</td>
+                <td onClick={() => cycleLeadStatus(l)}><span className="mono" style={{ color: scoreColor(l.score), fontWeight: 700 }}>{l.score}</span></td>
+                <td onClick={() => cycleLeadStatus(l)}>
                   <span className={"badge " + (l.status === "hot" ? "new" : l.status === "warm" ? "bot" : l.status === "won" ? "human" : "")}>
                     {l.status.toUpperCase()}
                   </span>
                 </td>
-                <td><span className="mono">{l.updated}</span></td>
+                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.updated}</span></td>
+                <td>
+                  <button
+                    type="button"
+                    style={{ background: "none", border: "none", color: "#c00", cursor: "pointer", fontSize: 13, padding: "2px 6px" }}
+                    title="Delete lead"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm(`Delete lead ${l.name} (${l.id})?`)) return;
+                      await fetch(`/api/leads?id=${encodeURIComponent(l.id)}`, { method: "DELETE" });
+                      await loadLeads();
+                      window.dispatchEvent(new Event("ali-store-updated"));
+                    }}
+                  >
+                    ✕
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

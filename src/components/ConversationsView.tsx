@@ -349,6 +349,20 @@ export function ConversationsView() {
               >
                 {active.status === "human" ? "Hand to bot" : "Take over"}
               </button>
+
+              <button
+                className="btn"
+                title="Delete this conversation"
+                style={{ color: "#d32f2f", borderColor: "#ffcdd2" }}
+                onClick={async () => {
+                  if (!confirm(`Delete conversation with ${active.name}?`)) return;
+                  await fetch(`/api/conversations?id=${encodeURIComponent(active.id)}`, { method: "DELETE" });
+                  await loadConversations();
+                  window.dispatchEvent(new Event("ali-store-updated"));
+                }}
+              >
+                Delete
+              </button>
             </div>
           </div>
 
