@@ -72,7 +72,7 @@ export default function LeadsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ali-agent-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `three-uk-leads-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

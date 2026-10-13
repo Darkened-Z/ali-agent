@@ -190,11 +190,11 @@ export const devices = [
 
 /* ---------- TEAM ---------- */
 export const team = [
-  { id: "T-01", name: "Ali Rehman",    role: "Owner",         email: "ali@aliagent.co.uk",    active: "Just now", handled: 0 },
-  { id: "T-02", name: "Sam Whittaker", role: "Senior agent",  email: "sam@aliagent.co.uk",    active: "3 min",    handled: 14 },
-  { id: "T-03", name: "Aisha Khan",    role: "Agent",         email: "aisha@aliagent.co.uk",  active: "12 min",   handled: 22 },
-  { id: "T-04", name: "Harry Ellis",   role: "Agent",         email: "harry@aliagent.co.uk",  active: "1 hr",     handled: 11 },
-  { id: "T-05", name: "Zara Ahmed",    role: "Logistics",     email: "zara@aliagent.co.uk",   active: "3 hr",     handled: 0 },
+  { id: "T-01", name: "Operations Lead", role: "Manager",      email: "ops@three.co.uk",    active: "Just now", handled: 0 },
+  { id: "T-02", name: "Sam Whittaker",  role: "Senior Agent", email: "sam@three.co.uk",    active: "3 min",    handled: 14 },
+  { id: "T-03", name: "Aisha Khan",     role: "Agent",        email: "aisha@three.co.uk",  active: "12 min",   handled: 22 },
+  { id: "T-04", name: "Harry Ellis",    role: "Agent",        email: "harry@three.co.uk",  active: "1 hr",     handled: 11 },
+  { id: "T-05", name: "Zara Ahmed",     role: "Logistics",    email: "zara@three.co.uk",   active: "3 hr",     handled: 0 },
 ];
 
 /* ---------- KNOWLEDGE BASE ---------- */

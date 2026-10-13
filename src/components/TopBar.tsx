@@ -68,15 +68,15 @@ export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
           <ThreeLogo size={20} fill="#000" />
         </div>
         <div className="brand-name">
-          Three UK · Ali Agent<span>Call Center v1.0</span>
+          Three UK<span>Operations Portal</span>
         </div>
       </Link>
       <nav className="topnav" aria-label="Sections">
-        <Link href="/" className={isActive("/") ? "active" : ""}>Three.co.uk Store</Link>
+        <Link href="/" className={isActive("/") ? "active" : ""}>Storefront</Link>
         <Link href="/checkout" className={isActive("/checkout") ? "active" : ""}>Checkout</Link>
-        <Link href="/admin" className={isActive("/admin") ? "active" : ""}>Dashboard</Link>
-        <Link href="/form" className={isActive("/form") ? "active" : ""}>Lead form</Link>
-        <Link href="/widget" className={isActive("/widget") ? "active" : ""}>Chat widget</Link>
+        <Link href="/admin" className={isActive("/admin") ? "active" : ""}>Admin Desk</Link>
+        <Link href="/form" className={isActive("/form") ? "active" : ""}>Lead Form</Link>
+        <Link href="/widget" className={isActive("/widget") ? "active" : ""}>Live Widget</Link>
       </nav>
       <div className="topright">
         <span className="live-dot" aria-hidden="true" />

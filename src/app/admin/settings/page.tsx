@@ -23,10 +23,10 @@ const escalationRules = [
 
 const defaultSettings: AppSettings = {
   general: {
-    businessName: "Ali Mobile UK",
-    contactEmail: "ali@aliagent.co.uk",
+    businessName: "Three UK Retail Desk",
+    contactEmail: "desk@three.co.uk",
     timezone: "gb",
-    websiteDomain: "aliagent.co.uk",
+    websiteDomain: "call.goxx.app",
   },
   hours: Object.fromEntries(
     days.map(d => [
@@ -41,9 +41,9 @@ const defaultSettings: AppSettings = {
   whatsapp: {
     provider: "meta",
     phoneNumberId: "1058827740928374",
-    accessToken: "EAAY_demo_token_ali_agent_uk",
-    verifyToken: "ali_agent_verify_a3f9b2",
-    webhookUrl: "https://ali-agent.vercel.app/api/whatsapp/webhook",
+    accessToken: "EAAY_demo_token_three_uk",
+    verifyToken: "three_agent_verify_a3f9b2",
+    webhookUrl: "https://call.goxx.app/api/whatsapp/webhook",
   },
   escalation: {
     "Discount requested": true,
@@ -53,7 +53,7 @@ const defaultSettings: AppSettings = {
     "Payment / bank details": true,
   },
   billing: {
-    plan: "Ali Agent · Pro plan",
+    plan: "Three UK · Operations Pro",
     monthSpend: "£124.80",
     messagesCount: 1247,
     leadsCount: 48,

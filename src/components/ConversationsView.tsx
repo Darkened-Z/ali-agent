@@ -224,7 +224,7 @@ export function ConversationsView() {
                 className={"chip " + (filter === f.key ? "on" : "")}
                 onClick={() => setFilter(f.key)}
               >
-                {f.label} · {f.count}
+                {f.label} ({f.count})
               </button>
             ))}
           </div>
@@ -241,22 +241,12 @@ export function ConversationsView() {
                 </div>
                 <div className="conv-msg">{c.preview}</div>
                 <div className="conv-meta">
-                  <span className={"badge " + c.channel}>
-                    {c.channel === "wa" ? "WA" : "WEB"}
+                  <span className="conv-channel">
+                    {c.channel === "wa" ? "WhatsApp" : "Web Chat"}{c.city ? ` · ${c.city}` : ""}
                   </span>
-                  <span
-                    className={
-                      "badge " + (c.status === "human" ? "human" : c.status === "bot" ? "bot" : "")
-                    }
-                  >
-                    {c.status.toUpperCase()}
-                  </span>
-                  {c.assignee && (
-                    <span className="badge" style={{ fontSize: 9 }}>
-                      @{c.assignee.split(" ")[0].toUpperCase()}
-                    </span>
-                  )}
-                  {c.isNew && <span className="badge new">NEW</span>}
+                  {c.isNew && <span className="status-badge new">NEW</span>}
+                  {c.status === "waiting" && <span className="status-badge waiting">WAITING</span>}
+                  {c.status === "human" && <span className="status-badge human">AGENT</span>}
                 </div>
               </button>
             ))}
@@ -269,108 +259,43 @@ export function ConversationsView() {
         </div>
 
         <div className="col">
-          <div className="thread-head" style={{ position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
-                  color: "#000",
-                  fontWeight: 900,
-                  fontSize: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  boxShadow: "0 2px 8px rgba(255, 123, 103, 0.3)",
-                }}
-              >
-                {active.name.charAt(0)}
+          <div className="thread-head">
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{active.name}</span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-jbmono), monospace",
+                    fontSize: 13,
+                    color: "#64748b",
+                  }}
+                >
+                  {active.phone}
+                </span>
+                {active.city && (
+                  <span style={{ fontSize: 13, color: "#64748b" }}>· {active.city}</span>
+                )}
               </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{active.name}</span>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-jbmono), monospace",
-                      fontSize: 12,
-                      color: "#475569",
-                      background: "#f1f5f9",
-                      padding: "2px 8px",
-                      borderRadius: 6,
-                    }}
-                  >
-                    {active.phone}
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: active.channel === "wa" ? "#10b981" : "#0284c7",
+                    display: "inline-block",
+                  }}
+                />
+                <span>{active.channel === "wa" ? "WhatsApp Business" : "Web Live Chat"}</span>
+                {active.status === "waiting" && (
+                  <span style={{ color: "#b45309", fontWeight: 700, marginLeft: 6 }}>
+                    · Escalation waiting for agent
                   </span>
-                  {active.city && (
-                    <span style={{ fontSize: 12, color: "#64748b" }}>· {active.city}</span>
-                  )}
-                  {active.assignee && (
-                    <span className="badge" style={{ marginLeft: 4 }}>
-                      ASSIGNED: {active.assignee.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                  Active channel:{" "}
-                  <b style={{ color: active.channel === "wa" ? "#047857" : "#0284c7" }}>
-                    {active.channel === "wa" ? "WhatsApp Business" : "Web Live Chat"}
-                  </b>
-                </div>
+                )}
               </div>
             </div>
 
             <div className="thread-actions">
-              <div style={{ position: "relative" }}>
-                <button
-                  className="btn ghost"
-                  onClick={() => setShowAssignMenu(v => !v)}
-                  style={{ border: "1px solid #cbd5e1", background: "#f8fafc" }}
-                >
-                  {active.assignee ? `Assigned: ${active.assignee.split(" ")[0]}` : "Assign"}
-                </button>
-                {showAssignMenu && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      top: "100%",
-                      marginTop: 4,
-                      background: "#ffffff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: 12,
-                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                      zIndex: 30,
-                      minWidth: 180,
-                      display: "flex",
-                      flexDirection: "column",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {teamList.map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => assignAgent(m.name)}
-                        style={{
-                          padding: "10px 14px",
-                          textAlign: "left",
-                          background: "transparent",
-                          border: "none",
-                          borderBottom: "1px solid #f1f5f9",
-                          cursor: "pointer",
-                          fontSize: 12,
-                          color: "#0f172a",
-                        }}
-                      >
-                        {m.name} <span className="mono" style={{ color: "#64748b", fontSize: 10 }}>({m.role})</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               <button
                 className="btn"
                 style={{
@@ -599,58 +524,21 @@ export function ConversationsView() {
         </div>
 
         <aside className="col rail">
-          {/* Profile Card Header */}
-          <div
-            style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: 16,
-              padding: "16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
-                color: "#000",
-                fontWeight: 900,
-                fontSize: 17,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              {active.name.charAt(0)}
-            </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{active.name}</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>{active.phone}</div>
-              <div style={{ fontSize: 11, color: "#047857", fontWeight: 700, marginTop: 2 }}>
-                ✓ Verified Three Customer
-              </div>
-            </div>
-          </div>
-
           <div>
-            <h3>Lead Information</h3>
+            <h3>Customer Details</h3>
             <dl className="kv">
               <dt>Name</dt><dd>{active.name}</dd>
               <dt>Phone</dt><dd><span className="mono">{active.phone}</span></dd>
-              <dt>City</dt><dd>{active.city}</dd>
-              <dt>Source</dt><dd>{active.source}</dd>
+              <dt>City</dt><dd>{active.city || "UK"}</dd>
+              <dt>Channel</dt><dd>{active.channel === "wa" ? "WhatsApp" : "Web Chat"}</dd>
+              <dt>Status</dt><dd style={{ textTransform: "capitalize" }}>{active.status}</dd>
               <dt>First seen</dt><dd><span className="mono">{active.firstSeen}</span></dd>
             </dl>
           </div>
 
-          {active.tags && (
+          {active.tags && active.tags.length > 0 && (
             <div>
-              <h3>Device &amp; Plan Interest</h3>
+              <h3>Product Interest</h3>
               <div className="tags">
                 {active.tags.map(t => (
                   <span key={t} className="tag">{t}</span>
@@ -660,70 +548,34 @@ export function ConversationsView() {
           )}
 
           <div>
-            <h3>Lead Intent Score</h3>
-            <div
-              style={{
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: 14,
-                padding: "14px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span
-                  style={{
-                    background: (active.score ?? 50) >= 70 ? "#fee2e2" : "#fef3c7",
-                    color: (active.score ?? 50) >= 70 ? "#b91c1c" : "#92400e",
-                    fontWeight: 900,
-                    fontSize: 11,
-                    padding: "3px 10px",
-                    borderRadius: 999,
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  {(active.score ?? 50) >= 70
-                    ? "🔥 HOT INTENT"
-                    : (active.score ?? 50) >= 40
-                    ? "⚡ WARM"
-                    : "❄ COLD"}
-                </span>
-                <span style={{ fontFamily: "var(--font-jbmono), monospace", fontSize: 18, fontWeight: 900, color: "#0f172a" }}>
-                  {active.score ?? 50}/100
-                </span>
-              </div>
-              <div
-                style={{
-                  height: 6,
-                  width: "100%",
-                  background: "#e2e8f0",
-                  borderRadius: 999,
-                  overflow: "hidden",
-                  marginBottom: 8,
+            <h3>Quick Actions</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                className="btn"
+                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left" }}
+                onClick={() => {
+                  setReplyText("Sending the secure checkout link now. Which delivery slot works best for you tomorrow?");
+                  composerRef.current?.focus();
                 }}
               >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${active.score ?? 50}%`,
-                    background:
-                      (active.score ?? 50) >= 70
-                        ? "linear-gradient(90deg, #ff7b67, #ef4444)"
-                        : "linear-gradient(90deg, #ff7b67, #f59e0b)",
-                    borderRadius: 999,
-                  }}
-                />
-              </div>
-              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.4 }}>
-                {(active.score ?? 50) >= 70
-                  ? "High-intent customer phrasing: inquired about price, delivery & contract term. Active 4+ minutes."
-                  : "Casual browsing prospect: early discovery phase."}
-              </div>
+                🛒 Send Checkout Link
+              </button>
+              <button
+                className="btn"
+                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left" }}
+                onClick={() => {
+                  setReplyText("To port your number to Three, text PAC to 65075 (free) and reply here with your 9-character code.");
+                  composerRef.current?.focus();
+                }}
+              >
+                📱 Send PAC Porting Info
+              </button>
             </div>
           </div>
 
-          {active.timeline && (
+          {active.timeline && active.timeline.length > 0 && (
             <div>
-              <h3>Activity Timeline</h3>
+              <h3>Activity Log</h3>
               <div className="timeline">
                 {active.timeline.map((t, i) => (
                   <div key={i} className="row">
