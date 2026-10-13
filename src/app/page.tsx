@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { TopBar } from "@/components/TopBar";
-import { stats } from "@/lib/mockData";
+import { getDashboardStats } from "@/lib/store";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
+  const stats = getDashboardStats();
+
   return (
     <>
-      <TopBar />
+      <TopBar liveCount={stats.activeNow} queuedCount={stats.queuedToday} />
       <main className="hub">
         <div className="hub-head">
-          <div className="kicker">CLIENT DEMO · V0.1</div>
+          <div className="kicker">CLIENT DEMO · LIVE V1.0</div>
           <h1>Auto-reply chats. Capture leads. Never miss a customer.</h1>
           <p>
             Ali Agent handles WhatsApp and website chats with Claude, feeds every lead into one dashboard, and hands off to your team when it matters. Below — a live walk-through of what your call center gets on day one.

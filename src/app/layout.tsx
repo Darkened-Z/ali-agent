@@ -33,7 +33,7 @@ const themeInit = `
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${hanken.variable} ${jbMono.variable}`}>
+    <html lang="en" className={`${hanken.variable} ${jbMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>

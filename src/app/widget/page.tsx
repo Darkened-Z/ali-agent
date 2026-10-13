@@ -57,7 +57,11 @@ export default function WidgetPage() {
         <div className="section-head">
           <div className="section-idx">03 / 03</div>
           <h2 className="section-title">Embeddable chat widget — one script tag, drops into any Ali site.</h2>
-          <p className="section-sub">Shown here on a mock shop page for context. Try it — the widget is live in the bottom-right and answers with the real widget code (canned responses in this demo, will call Claude in production).</p>
+          <p className="section-sub">
+            Shown here on a mock shop page for context. Drop{" "}
+            <code>&lt;script src=&quot;/widget.js&quot; defer&gt;&lt;/script&gt;</code>{" "}
+            into any storefront — every message streams live and logs directly into your Admin Conversations inbox.
+          </p>
         </div>
         <div className="section-body">
           <div className="widget-scene">

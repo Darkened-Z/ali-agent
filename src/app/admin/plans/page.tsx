@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { phoneDeals, simOnlyPlans, type Network } from "@/lib/plans";
 
 type Kind = "All" | "Contract" | "SIM only";
@@ -45,32 +45,193 @@ const simRows: Row[] = simOnlyPlans.map(p => ({
   tag: "sim-only",
 }));
 
-const allRows: Row[] = [...contractRows, ...simRows];
-
-const networks: (Network | "All")[] = ["All", "Three", "Vodafone", "Talkmobile", "SIM Free", "Unknown"];
+const baseRows: Row[] = [...contractRows, ...simRows];
+const networks: (Network | "All")[] = ["All", "Three", "Vodafone", "Talkmobile", "EE", "O2", "SMARTY"];
 
 export default function PlansPage() {
+  const [customRows, setCustomRows] = useState<Row[]>([]);
+  const [lastSynced, setLastSynced] = useState<string>("Aug 24, 14:00");
+  const [syncing, setSyncing] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+
+  const [newKind, setNewKind] = useState<"Contract" | "SIM only">("Contract");
+  const [newNetwork, setNewNetwork] = useState<Network>("Three");
+  const [newTitle, setNewTitle] = useState("");
+  const [newSub, setNewSub] = useState("100GB 5G · Unlimited mins & texts");
+  const [newMonthly, setNewMonthly] = useState("29");
+  const [newUpfront, setNewUpfront] = useState("0");
+
   const [kind, setKind] = useState<Kind>("All");
   const [network, setNetwork] = useState<Network | "All">("All");
   const [sort, setSort] = useState<"price-asc" | "price-desc">("price-asc");
+
+  const loadCatalogue = useCallback(async () => {
+    try {
+      const res = await fetch("/api/catalogue", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.customPlans)) setCustomRows(data.customPlans);
+      if (data.lastCatalogueSync) setLastSynced(data.lastCatalogueSync);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCatalogue();
+  }, [loadCatalogue]);
+
+  const allRows = useMemo(() => [...customRows, ...baseRows], [customRows]);
 
   const visible = useMemo(() => {
     let rows = allRows;
     if (kind !== "All") rows = rows.filter(r => r.kind === kind);
     if (network !== "All") rows = rows.filter(r => r.network === network);
-    rows = [...rows].sort((a, b) => sort === "price-asc" ? a.monthly - b.monthly : b.monthly - a.monthly);
+    rows = [...rows].sort((a, b) => (sort === "price-asc" ? a.monthly - b.monthly : b.monthly - a.monthly));
     return rows;
-  }, [kind, network, sort]);
+  }, [allRows, kind, network, sort]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/catalogue", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "sync" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lastCatalogueSync) setLastSynced(data.lastCatalogueSync);
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleAddPlan = async () => {
+    if (!newTitle.trim()) return;
+    const res = await fetch("/api/catalogue", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "plan",
+        kind: newKind,
+        network: newNetwork,
+        title: newTitle,
+        sub: newSub,
+        monthly: Number(newMonthly) || 29,
+        upfront: Number(newUpfront) || 0,
+        contractMonths: newKind === "SIM only" ? 1 : 24,
+      }),
+    });
+    if (res.ok) {
+      setNewTitle("");
+      setShowAdd(false);
+      await loadCatalogue();
+      window.dispatchEvent(new Event("ali-store-updated"));
+    }
+  };
 
   return (
     <>
       <div className="page-head">
-        <h1>Plans & SIMs<span>· {allRows.length} tariffs · sourced from fonehouse.co.uk</span></h1>
+        <h1>
+          Plans &amp; SIMs
+          <span>
+            · {allRows.length} tariffs · synced {lastSynced}
+          </span>
+        </h1>
         <div className="actions">
-          <button className="btn">Sync from Fonehouse</button>
-          <button className="btn primary">+ Add plan</button>
+          <button className="btn" onClick={handleSync} disabled={syncing}>
+            {syncing ? "Syncing…" : "Sync from Fonehouse"}
+          </button>
+          <button className="btn primary" onClick={() => setShowAdd(v => !v)}>
+            {showAdd ? "Cancel" : "+ Add plan"}
+          </button>
         </div>
       </div>
+
+      {showAdd && (
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid var(--line)",
+            background: "var(--paper-2)",
+            display: "grid",
+            gridTemplateColumns: "130px 130px 1.2fr 1.2fr 90px 90px auto",
+            gap: 10,
+            alignItems: "end",
+          }}
+        >
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>KIND</label>
+            <select
+              value={newKind}
+              onChange={e => setNewKind(e.target.value as "Contract" | "SIM only")}
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            >
+              <option value="Contract">Contract</option>
+              <option value="SIM only">SIM only</option>
+            </select>
+          </div>
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>NETWORK</label>
+            <select
+              value={newNetwork}
+              onChange={e => setNewNetwork(e.target.value as Network)}
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            >
+              <option value="Three">Three</option>
+              <option value="Vodafone">Vodafone</option>
+              <option value="Talkmobile">Talkmobile</option>
+              <option value="EE">EE</option>
+              <option value="O2">O2</option>
+              <option value="SMARTY">SMARTY</option>
+            </select>
+          </div>
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>TITLE</label>
+            <input
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              placeholder="e.g. iPhone 17 · 512 GB"
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            />
+          </div>
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>SPECS</label>
+            <input
+              value={newSub}
+              onChange={e => setNewSub(e.target.value)}
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            />
+          </div>
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>£ / MO</label>
+            <input
+              value={newMonthly}
+              onChange={e => setNewMonthly(e.target.value)}
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            />
+          </div>
+          <div className="form-input" style={{ marginBottom: 0 }}>
+            <label>£ UPFRONT</label>
+            <input
+              value={newUpfront}
+              onChange={e => setNewUpfront(e.target.value)}
+              style={{ fontSize: 13, padding: "8px 10px" }}
+            />
+          </div>
+          <button
+            className="btn primary"
+            onClick={handleAddPlan}
+            disabled={!newTitle.trim()}
+            style={{ height: 37 }}
+          >
+            Save plan
+          </button>
+        </div>
+      )}
 
       <div className="filters-bar">
         {kinds.map(k => (
@@ -94,7 +255,14 @@ export default function PlansPage() {
         <div className="card-grid">
           {visible.map(r => (
             <div key={r.id} className="plan-card">
-              <div className="network">{r.network}{r.tag && r.tag !== "sim-only" && <span style={{ marginLeft: 8, fontSize: 9, color: "var(--signal)", border: "1px solid var(--signal)", padding: "1px 5px" }}>{r.tag.toUpperCase()}</span>}</div>
+              <div className="network">
+                {r.network}
+                {r.tag && r.tag !== "sim-only" && (
+                  <span style={{ marginLeft: 8, fontSize: 9, color: "var(--signal)", border: "1px solid var(--signal)", padding: "1px 5px" }}>
+                    {r.tag.toUpperCase()}
+                  </span>
+                )}
+              </div>
               <h3>{r.title}</h3>
               <div style={{ fontSize: 13, color: "var(--muted)" }}>{r.sub}</div>
               <div className="price">{r.monthlyLabel}</div>

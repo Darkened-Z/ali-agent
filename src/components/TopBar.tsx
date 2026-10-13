@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Props = {
   liveCount?: number;
@@ -12,12 +12,34 @@ type Props = {
 export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
   const pathname = usePathname();
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+  const [counts, setCounts] = useState({ live: liveCount, queued: queuedCount });
+
+  const refreshCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/conversations", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.stats) {
+        setCounts({
+          live: data.stats.activeNow ?? liveCount,
+          queued: data.stats.queuedToday ?? queuedCount,
+        });
+      }
+    } catch {
+      // Keep fallback counts
+    }
+  }, [liveCount, queuedCount]);
 
   useEffect(() => {
     const stored = localStorage.getItem("ali-theme") as "light" | "dark" | null;
     if (stored) setTheme(stored);
     else setTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  }, []);
+
+    refreshCounts();
+    const onUpdate = () => refreshCounts();
+    window.addEventListener("ali-store-updated", onUpdate);
+    return () => window.removeEventListener("ali-store-updated", onUpdate);
+  }, [refreshCounts]);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -34,7 +56,7 @@ export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
       <Link href="/" className="brand" style={{ textDecoration: "none", color: "inherit" }}>
         <div className="brand-mark">A</div>
         <div className="brand-name">
-          Ali Agent<span>Demo · v0.1</span>
+          Ali Agent<span>Live · v1.0</span>
         </div>
       </Link>
       <nav className="topnav" aria-label="Sections">
@@ -44,7 +66,7 @@ export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
       </nav>
       <div className="topright">
         <span className="live-dot" aria-hidden="true" />
-        <span className="mono">{liveCount} LIVE · {queuedCount} QUEUED</span>
+        <span className="mono">{counts.live} LIVE · {counts.queued} QUEUED</span>
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === "dark" ? "LIGHT" : "DARK"}
         </button>

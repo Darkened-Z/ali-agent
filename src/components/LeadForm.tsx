@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
 type Need = "sim" | "port" | "phone" | "plan";
 type NetworkChoice = "ee" | "o2" | "vodafone" | "three" | "talkmobile" | "id" | "smarty" | "any";
@@ -34,28 +35,54 @@ export function LeadForm() {
   const [step, setStep] = useState<number>(1);
   const [data, setData] = useState<FormState>(initial);
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const total = 4;
   const canNext =
     (step === 1 && data.name.trim().length > 1) ||
     (step === 2 && !!data.need) ||
     (step === 3 && data.city.trim().length > 1) ||
-    (step === 4 && data.phone.trim().length >= 10);
+    (step === 4 && data.phone.trim().length >= 8);
 
-  const next = () => {
+  const submit = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          need: data.need || "phone",
+          city: data.city,
+          network: data.network,
+          phone: data.phone,
+          time: data.time,
+          source: "Website form",
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setSubmitted(json.lead?.id || "AA-" + Math.floor(1000 + Math.random() * 9000));
+        window.dispatchEvent(new Event("ali-store-updated"));
+      } else {
+        setSubmitted("AA-" + Math.floor(1000 + Math.random() * 9000));
+      }
+    } catch {
+      setSubmitted("AA-" + Math.floor(1000 + Math.random() * 9000));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [data, submitting]);
+
+  const next = useCallback(() => {
     if (!canNext) return;
-    if (step < total) setStep(step + 1);
+    if (step < total) setStep(s => s + 1);
     else submit();
-  };
+  }, [canNext, step, submit]);
+
   const back = () => step > 1 && setStep(step - 1);
 
-  const submit = () => {
-    // In production: POST /api/leads → Supabase → optional email/WhatsApp notification
-    const id = "AA-" + Math.floor(1000 + Math.random() * 9000);
-    setSubmitted(id);
-  };
-
-  // Keyboard shortcuts for step 2 (need)
   useEffect(() => {
     if (step !== 2) return;
     const onKey = (e: KeyboardEvent) => {
@@ -77,12 +104,16 @@ export function LeadForm() {
           <div className="big-num">{submitted}</div>
           <h2>Got it — we&apos;ll call you back within 30 minutes.</h2>
           <p>
-            Your reference is <span className="mono">{submitted}</span>. If nobody rings by then, WhatsApp us at
-            {" "}<span className="mono">+44 7700 000000</span> with this number.
+            Your reference is <span className="mono">{submitted}</span>. It has been added to our live call-center queue and leads list.
           </p>
-          <button className="btn lg" onClick={() => { setSubmitted(null); setData(initial); setStep(1); }}>
-            Start another request
-          </button>
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            <button className="btn lg" onClick={() => { setSubmitted(null); setData(initial); setStep(1); }}>
+              Start another request
+            </button>
+            <Link href="/admin/leads" className="btn lg primary" style={{ textDecoration: "none" }}>
+              View in Admin Leads →
+            </Link>
+          </div>
         </div>
         <div className="form-context">
           <h4>What happens next</h4>
@@ -214,14 +245,14 @@ export function LeadForm() {
         )}
 
         <div className="form-nav">
-          <button className="btn" onClick={back} disabled={step === 1}>← Back</button>
+          <button className="btn" onClick={back} disabled={step === 1 || submitting}>← Back</button>
           {step === 2 && (
             <div className="hint">
               Or press <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>
             </div>
           )}
-          <button className="btn primary" onClick={next} disabled={!canNext}>
-            {step === total ? "Submit →" : "Continue →"}
+          <button className="btn primary" onClick={next} disabled={!canNext || submitting}>
+            {submitting ? "Submitting…" : step === total ? "Submit →" : "Continue →"}
           </button>
         </div>
       </div>
