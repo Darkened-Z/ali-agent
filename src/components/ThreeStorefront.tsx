@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThreeLogo } from "./ThreeLogo";
 import { ChatWidget } from "./ChatWidget";
 import { phoneDeals, simOnlyPlans, refurbPhones } from "@/lib/plans";
@@ -86,12 +86,28 @@ export function ThreeStorefront() {
   const [showTerms, setShowTerms] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("three_basket");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) setBasket(parsed);
+      }
+    } catch {}
+  }, []);
+
   const askAi = (prompt: string) => {
     window.dispatchEvent(new CustomEvent("ali-open-chat", { detail: { prompt } }));
   };
 
   const addToBasket = (item: BasketItem) => {
-    setBasket(prev => [...prev, item]);
+    setBasket(prev => {
+      const next = [...prev, item];
+      try {
+        localStorage.setItem("three_basket", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     setShowBasket(true);
   };
 
@@ -151,6 +167,11 @@ export function ThreeStorefront() {
                 </button>
               </li>
               <li>
+                <Link href="/checkout" className="three-pill-utility" style={{ background: "#fdf2f0", borderColor: "#ffaba9", fontWeight: 700 }}>
+                  Checkout ({basket.length}) 🛒
+                </Link>
+              </li>
+              <li>
                 <Link href="/form" className="three-pill-utility">
                   Request callback
                 </Link>
@@ -175,6 +196,12 @@ export function ThreeStorefront() {
               {showMy3 && (
                 <div className="three-dropdown-card">
                   <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>My3 Account &amp; Staff</div>
+                  <Link href="/checkout" onClick={() => setShowMy3(false)} style={{ color: "#000", fontWeight: 700 }}>
+                    🛒 Checkout &amp; Order Confirmation (/checkout)
+                  </Link>
+                  <Link href="/admin/orders" onClick={() => setShowMy3(false)}>
+                    📦 Customer Orders Queue (/admin/orders)
+                  </Link>
                   <Link href="/admin" onClick={() => setShowMy3(false)}>
                     Open Call Center Dashboard (/admin)
                   </Link>
@@ -426,11 +453,11 @@ export function ThreeStorefront() {
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <Link
-              href="/form"
+              href="/checkout"
               className="three-cta-pill three-cta-pill--black"
               style={{ flex: 1, textAlign: "center", justifyContent: "center" }}
             >
-              Complete order / Callback →
+              Confirm Order &amp; Delivery ({basket.length}) →
             </Link>
           </div>
         </div>

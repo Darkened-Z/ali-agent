@@ -141,9 +141,33 @@ export type CustomDeviceItem = {
   kind: "New" | "SIM-free" | "Refurbished";
 };
 
+export type OrderRecord = {
+  id: string;
+  createdAt: string;
+  customerName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postcode: string;
+  pacCode?: string;
+  paymentMethod: string;
+  items: {
+    id: string;
+    name: string;
+    price: string;
+    upfront?: string;
+  }[];
+  monthlyTotal: string;
+  upfrontTotal: string;
+  status: "confirmed" | "dispatching" | "delivered" | "cancelled";
+  trackingNumber: string;
+};
+
 export type DatabaseSchema = {
   conversations: (Conversation & { assignee?: string })[];
   leads: LeadRecord[];
+  orders: OrderRecord[];
   kbArticles: KBArticleRecord[];
   broadcasts: BroadcastRecord[];
   team: TeamMemberRecord[];
@@ -200,6 +224,55 @@ function createSeedDb(): DatabaseSchema {
   return {
     conversations: structuredClone(initialConversations),
     leads: structuredClone(initialLeads),
+    orders: [
+      {
+        id: "3UK-849204",
+        createdAt: "Today, 11:24",
+        customerName: "Marcus Vance",
+        email: "marcus.vance@gmail.com",
+        phone: "+44 7700 900214",
+        address: "42 Richmond Hill",
+        city: "London",
+        postcode: "TW10 6QX",
+        pacCode: "VOD628192",
+        paymentMethod: "Klarna Pay in 3",
+        items: [
+          {
+            id: "pop-s26",
+            name: "Samsung Galaxy S26 · Unlimited 5G Plan",
+            price: "£38.00 / mo",
+            upfront: "£29 upfront",
+          },
+        ],
+        monthlyTotal: "£38.00/mo",
+        upfrontTotal: "£29.00",
+        status: "confirmed",
+        trackingNumber: "DPD-GB-841920",
+      },
+      {
+        id: "3UK-712853",
+        createdAt: "Today, 09:40",
+        customerName: "Chloe Bennett",
+        email: "chloe.b@outlook.com",
+        phone: "+44 7700 900883",
+        address: "18 Deansgate",
+        city: "Manchester",
+        postcode: "M3 2NW",
+        paymentMethod: "Apple Pay",
+        items: [
+          {
+            id: "sim-unl-23",
+            name: "Three Unlimited Data SIM (24m)",
+            price: "£23.00 / mo",
+            upfront: "£0 upfront",
+          },
+        ],
+        monthlyTotal: "£23.00/mo",
+        upfrontTotal: "£0.00",
+        status: "dispatching",
+        trackingNumber: "DPD-GB-992104",
+      },
+    ],
     kbArticles: initialKbArticles.map(a => ({
       ...a,
       content: DEFAULT_KB_CONTENT[a.id] ?? `${a.title} — standard UK retail policy & pricing guide.`,
@@ -281,6 +354,7 @@ export function readDb(): DatabaseSchema {
     return {
       ...seed,
       ...parsed,
+      orders: Array.isArray(parsed.orders) ? parsed.orders : (seed.orders ?? []),
       botConfig: { ...seed.botConfig, ...(parsed.botConfig ?? {}) },
       settings: { ...seed.settings, ...(parsed.settings ?? {}) },
     };
@@ -410,6 +484,112 @@ export function addLeadToDb(input: {
   db.settings.billing.leadsCount += 1;
   writeDb(db);
   return newLead;
+}
+
+export function addOrderToDb(input: {
+  customerName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postcode: string;
+  pacCode?: string;
+  paymentMethod?: string;
+  items: { id: string; name: string; price: string; upfront?: string }[];
+}): OrderRecord {
+  const db = readDb();
+  const randNum = Math.floor(100000 + Math.random() * 900000);
+  const orderId = `3UK-${randNum}`;
+  const trackingNumber = `DPD-GB-${Math.floor(100000 + Math.random() * 900000)}`;
+  const timeStr = nowHHMM();
+  const dateStr = shortDate();
+
+  let monthlySum = 0;
+  let upfrontSum = 0;
+  for (const item of input.items) {
+    const mMatch = item.price.match(/£?([0-9.]+)/);
+    if (mMatch) monthlySum += parseFloat(mMatch[1]);
+    if (item.upfront) {
+      const uMatch = item.upfront.match(/£?([0-9.]+)/);
+      if (uMatch) upfrontSum += parseFloat(uMatch[1]);
+    }
+  }
+
+  const order: OrderRecord = {
+    id: orderId,
+    createdAt: `${dateStr}, ${timeStr}`,
+    customerName: input.customerName.trim(),
+    email: input.email.trim(),
+    phone: input.phone.trim(),
+    address: input.address.trim(),
+    city: input.city.trim(),
+    postcode: input.postcode.trim().toUpperCase(),
+    pacCode: input.pacCode?.trim() || undefined,
+    paymentMethod: input.paymentMethod || "Klarna Pay in 3",
+    items: input.items,
+    monthlyTotal: `£${monthlySum.toFixed(2)}/mo`,
+    upfrontTotal: `£${upfrontSum.toFixed(2)}`,
+    status: "confirmed",
+    trackingNumber,
+  };
+
+  db.orders = db.orders || [];
+  db.orders.unshift(order);
+
+  // Also create a "won" lead in CRM
+  const itemsSummary = input.items.map(i => i.name).join(" + ") || "Phone / SIM Order";
+  const leadNum = 1043 + db.leads.length;
+  db.leads.unshift({
+    id: `L-${leadNum}`,
+    name: order.customerName,
+    phone: order.phone,
+    city: `${order.city} (${order.postcode})`,
+    interest: `${itemsSummary} (Order: ${orderId})`,
+    source: "Online Checkout",
+    score: 100,
+    status: "won",
+    updated: timeStr,
+  });
+
+  // Also create a confirmed order notification in inbox
+  const convId = `order-${orderId.toLowerCase()}`;
+  db.conversations.unshift({
+    id: convId,
+    name: order.customerName,
+    phone: order.phone,
+    city: `${order.city} (${order.postcode})`,
+    channel: "web",
+    status: "closed",
+    time: timeStr,
+    preview: `ORDER CONFIRMED: ${orderId} · ${itemsSummary} · DPD: ${trackingNumber}`,
+    isNew: true,
+    score: 100,
+    source: "Three Storefront Checkout",
+    firstSeen: `${dateStr}, ${timeStr}`,
+    tags: ["ORDER CONFIRMED", order.postcode, input.pacCode ? `PAC: ${input.pacCode}` : "NEW NUMBER"],
+    timeline: [
+      { time: timeStr, who: "Customer", what: `Placed order ${orderId}` },
+      { time: timeStr, who: "System", what: `Assigned DPD Tracking: ${trackingNumber}` },
+    ],
+    messages: [
+      {
+        from: "client",
+        text: `Order placed online: ${itemsSummary}. Total: ${order.monthlyTotal} (${order.upfrontTotal} upfront). Delivery Address: ${order.address}, ${order.city}, ${order.postcode}. Contact: ${order.phone} / ${order.email}.${input.pacCode ? ` PAC Code: ${input.pacCode}` : ""}`,
+        time: timeStr,
+        meta: "CHECKOUT",
+      },
+      {
+        from: "bot",
+        text: `Thank you for your order! Reference: ${orderId}. Track with DPD: ${trackingNumber}. Free delivery scheduled for next working day.`,
+        time: timeStr,
+        meta: "CONFIRMATION",
+      },
+    ],
+  });
+
+  db.settings.billing.leadsCount += 1;
+  writeDb(db);
+  return order;
 }
 
 export function generateCatalogueReply(

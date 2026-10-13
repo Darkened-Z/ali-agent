@@ -20,6 +20,7 @@ export function SideNav() {
   const pathname = usePathname();
   const [counts, setCounts] = useState({
     conversations: conversations.filter(c => c.status !== "closed").length,
+    orders: 2,
     leads: leads.length,
     plans: basePlansCount,
     devices: baseDevicesCount,
@@ -30,20 +31,25 @@ export function SideNav() {
 
   const refreshSidebar = useCallback(async () => {
     try {
-      const res = await fetch("/api/conversations", { cache: "no-store" });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data?.counts) {
+      const [resConv, resOrders] = await Promise.all([
+        fetch("/api/conversations", { cache: "no-store" }),
+        fetch("/api/orders", { cache: "no-store" }),
+      ]);
+      const dataConv = resConv.ok ? await resConv.json() : null;
+      const dataOrders = resOrders.ok ? await resOrders.json() : null;
+
+      if (dataConv?.counts) {
         setCounts({
-          conversations: data.counts.conversations,
-          leads: data.counts.leads,
-          plans: basePlansCount + (data.counts.customPlans || 0),
-          devices: baseDevicesCount + (data.counts.customDevices || 0),
-          broadcasts: data.counts.broadcasts,
+          conversations: dataConv.counts.conversations,
+          orders: Array.isArray(dataOrders?.orders) ? dataOrders.orders.length : 2,
+          leads: dataConv.counts.leads,
+          plans: basePlansCount + (dataConv.counts.customPlans || 0),
+          devices: baseDevicesCount + (dataConv.counts.customDevices || 0),
+          broadcasts: dataConv.counts.broadcasts,
         });
       }
-      if (typeof data?.botEnabled === "boolean") setBotEnabled(data.botEnabled);
-      if (data?.botModel) setBotModel(data.botModel);
+      if (typeof dataConv?.botEnabled === "boolean") setBotEnabled(dataConv.botEnabled);
+      if (dataConv?.botModel) setBotModel(dataConv.botModel);
     } catch {
       // Keep fallback counts
     }
@@ -73,6 +79,7 @@ export function SideNav() {
 
   const workspace = [
     { href: "/admin", label: "Conversations", count: counts.conversations },
+    { href: "/admin/orders", label: "Orders", count: counts.orders },
     { href: "/admin/leads", label: "Leads", count: counts.leads },
     { href: "/admin/plans", label: "Plans & SIMs", count: counts.plans },
     { href: "/admin/devices", label: "Devices", count: counts.devices },

@@ -73,6 +73,7 @@ export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
       </Link>
       <nav className="topnav" aria-label="Sections">
         <Link href="/" className={isActive("/") ? "active" : ""}>Three.co.uk Store</Link>
+        <Link href="/checkout" className={isActive("/checkout") ? "active" : ""}>Checkout</Link>
         <Link href="/admin" className={isActive("/admin") ? "active" : ""}>Dashboard</Link>
         <Link href="/form" className={isActive("/form") ? "active" : ""}>Lead form</Link>
         <Link href="/widget" className={isActive("/widget") ? "active" : ""}>Chat widget</Link>
