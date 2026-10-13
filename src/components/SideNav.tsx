@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ThreeLogo } from "./ThreeLogo";
 import { conversations, leads, broadcasts } from "@/lib/mockData";
 import { phoneDeals, simOnlyPlans, phoneModels, refurbPhones, simFreePhones } from "@/lib/plans";
 
@@ -104,6 +105,28 @@ export function SideNav() {
 
   return (
     <aside className="admin-side">
+      <Link
+        href="/"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "8px 10px 14px",
+          borderBottom: "1px solid var(--line)",
+          marginBottom: 10,
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <ThreeLogo size={32} fill="#000" />
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.02em" }}>Three UK Admin</div>
+          <div style={{ fontSize: 10, color: "var(--signal)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Call Center Hub
+          </div>
+        </div>
+      </Link>
+
       <div className="side-label">Workspace</div>
       {workspace.map(link)}
 
