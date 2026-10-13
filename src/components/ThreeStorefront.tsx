@@ -16,6 +16,7 @@ type BasketItem = {
 const POPULAR_SHOWCASE = [
   {
     id: "pop-iphone-17",
+    slug: "iphone-17",
     title: "iPhone 17",
     subtitle: "Save with our Unlimited Lite airtime plan. More delightful. More durable.",
     monthly: "£42",
@@ -27,6 +28,7 @@ const POPULAR_SHOWCASE = [
   },
   {
     id: "pop-s26",
+    slug: "samsung-galaxy-s26",
     title: "Samsung Galaxy S26",
     subtitle: "Save up to £726 when you trade in an eligible phone.",
     monthly: "£38",
@@ -38,6 +40,7 @@ const POPULAR_SHOWCASE = [
   },
   {
     id: "pop-honor-v6",
+    slug: "honor-magic-v6",
     title: "HONOR Magic V6",
     subtitle: "Save with selected airtime plans.",
     monthly: "£49",
@@ -49,6 +52,7 @@ const POPULAR_SHOWCASE = [
   },
   {
     id: "pop-razr-70",
+    slug: "motorola-razr-70-ultra",
     title: "Motorola Razr 70 Ultra",
     subtitle: "Save with selected airtime plans.",
     monthly: "£41",
@@ -60,18 +64,18 @@ const POPULAR_SHOWCASE = [
   },
 ];
 
-const QUICK_CATEGORIES = [
+const QUICK_CATEGORIES: { label: string; icon: string; href?: string; query?: string }[] = [
+  { label: "Pay Monthly phones", icon: "📱", href: "/devices/iphone-18-pro" },
+  { label: "SIM Only Deals", icon: "📶", href: "/sim-only" },
+  { label: "Home Broadband (£18)", icon: "🏠", href: "/broadband" },
+  { label: "iPhone 18 Pro", icon: "🍏", href: "/devices/iphone-18-pro" },
+  { label: "Samsung Galaxy S26", icon: "💫", href: "/devices/samsung-galaxy-s26" },
+  { label: "Google Pixel 11", icon: "🤖", href: "/devices/google-pixel-11" },
+  { label: "Foldables & Flips", icon: "📖", href: "/devices/honor-magic-v6" },
   { label: "Student Discounts", icon: "🎓", query: "Do you have student discounts on Three?" },
-  { label: "Pay Monthly phones", icon: "📱", query: "Show me your best Pay Monthly phone deals" },
-  { label: "Pay As You Go phones", icon: "💳", query: "What Pay As You Go phones do you have?" },
-  { label: "SIM Only", icon: "📶", query: "What is your cheapest SIM-only plan?" },
-  { label: "Home Broadband", icon: "🏠", query: "Tell me about Three Home Broadband for £18 a month" },
-  { label: "Mobile Broadband", icon: "📡", query: "Do you offer 5G Mobile Broadband?" },
-  { label: "Tablets and Laptops", icon: "💻", query: "What tablet and iPad deals do you have?" },
-  { label: "Smartwatches", icon: "⌚", query: "Do you have Apple Watch or Samsung Watch plans?" },
-  { label: "Accessories", icon: "🎧", query: "Do you have AirPods Pro 2 or Galaxy Buds in stock?" },
+  { label: "Basket & Checkout", icon: "🛒", href: "/checkout" },
   { label: "Business plans", icon: "💼", query: "Tell me about business multi-SIM discounts" },
-  { label: "Top up", icon: "⚡", query: "How do I top up my Pay As You Go SIM?" },
+  { label: "Staff Portal Hub", icon: "🎧", href: "/admin" },
 ];
 
 export function ThreeStorefront() {
@@ -250,6 +254,15 @@ export function ThreeStorefront() {
             >
               Shop <span>▾</span>
             </button>
+            <Link href="/devices/iphone-18-pro" className="three-nav-btn" style={{ textDecoration: "none" }}>
+              Phones
+            </Link>
+            <Link href="/sim-only" className="three-nav-btn" style={{ textDecoration: "none" }}>
+              SIM Only
+            </Link>
+            <Link href="/broadband" className="three-nav-btn" style={{ textDecoration: "none" }}>
+              Broadband
+            </Link>
             <button
               type="button"
               className={"three-nav-btn " + (openMenu === "why" ? "active" : "")}
@@ -266,8 +279,8 @@ export function ThreeStorefront() {
             >
               Help <span>▾</span>
             </button>
-            <Link href="/form" className="three-nav-btn" style={{ textDecoration: "none" }}>
-              Callback in 30m
+            <Link href="/checkout" className="three-nav-btn" style={{ textDecoration: "none" }}>
+              Checkout
             </Link>
             <Link href="/admin" className="three-nav-btn" style={{ textDecoration: "none" }}>
               Call Center Hub
@@ -319,28 +332,30 @@ export function ThreeStorefront() {
               <div>
                 <h4>Mobile phones</h4>
                 <ul>
-                  <li><button onClick={() => { setDealTab("phones"); setOpenMenu(null); }}>Pay Monthly phones</button></li>
-                  <li><button onClick={() => { askAi("Show me iPhone 18 Pro and iPhone 17 deals"); setOpenMenu(null); }}>iPhone 18 &amp; iPhone 17</button></li>
-                  <li><button onClick={() => { askAi("Show me Samsung Galaxy S26 Ultra deals"); setOpenMenu(null); }}>Samsung Galaxy S26 Series</button></li>
-                  <li><button onClick={() => { askAi("Show me Samsung Galaxy Z Flip8 deals"); setOpenMenu(null); }}>Samsung Z Flip and Fold Series</button></li>
-                  <li><button onClick={() => { askAi("Show me Google Pixel 11 and Pixel 10 Pro deals"); setOpenMenu(null); }}>Google Pixel Series</button></li>
+                  <li><Link href="/devices/iphone-18-pro" onClick={() => setOpenMenu(null)}>iPhone 18 Pro Flagship</Link></li>
+                  <li><Link href="/devices/iphone-17" onClick={() => setOpenMenu(null)}>iPhone 17 Series</Link></li>
+                  <li><Link href="/devices/samsung-galaxy-s26-ultra" onClick={() => setOpenMenu(null)}>Samsung Galaxy S26 Ultra</Link></li>
+                  <li><Link href="/devices/samsung-galaxy-s26" onClick={() => setOpenMenu(null)}>Samsung Galaxy S26</Link></li>
+                  <li><Link href="/devices/google-pixel-11" onClick={() => setOpenMenu(null)}>Google Pixel 11</Link></li>
+                  <li><Link href="/devices/honor-magic-v6" onClick={() => setOpenMenu(null)}>HONOR Magic V6 Foldable</Link></li>
+                  <li><Link href="/devices/motorola-razr-70-ultra" onClick={() => setOpenMenu(null)}>Motorola Razr 70 Flip</Link></li>
                 </ul>
               </div>
               <div>
                 <h4>SIM Only</h4>
                 <ul>
-                  <li><button onClick={() => { setDealTab("sim"); setOpenMenu(null); }}>All SIM deals</button></li>
-                  <li><button onClick={() => { askAi("Tell me about the £23 Unlimited data SIM"); setOpenMenu(null); }}>Pay Monthly phone SIMs</button></li>
-                  <li><button onClick={() => { askAi("Tell me about the £10 60GB rolling 30-day SIM"); setOpenMenu(null); }}>30-day Rolling SIMs</button></li>
-                  <li><button onClick={() => { askAi("Do you have data-only SIMs for tablets?"); setOpenMenu(null); }}>Pay Monthly Data Only SIMs</button></li>
+                  <li><Link href="/sim-only" onClick={() => setOpenMenu(null)}>All SIM Only Deals (from £8/mo)</Link></li>
+                  <li><Link href="/sim-only" onClick={() => setOpenMenu(null)}>Truly Unlimited 5G SIM (£23/mo)</Link></li>
+                  <li><Link href="/sim-only" onClick={() => setOpenMenu(null)}>30-Day Rolling SIMs (No contract)</Link></li>
+                  <li><Link href="/sim-only" onClick={() => setOpenMenu(null)}>Instant eSIM Activation</Link></li>
                 </ul>
               </div>
               <div>
                 <h4>Broadband &amp; More</h4>
                 <ul>
-                  <li><button onClick={() => { askAi("Tell me about Three Home Broadband for £18/mo"); setOpenMenu(null); }}>Home Broadband (£18/mo)</button></li>
-                  <li><button onClick={() => { askAi("Tell me about Three Mobile Broadband"); setOpenMenu(null); }}>Mobile Broadband</button></li>
-                  <li><button onClick={() => { askAi("How do I upgrade my existing Three contract early?"); setOpenMenu(null); }}>Upgrade my device or SIM</button></li>
+                  <li><Link href="/broadband" onClick={() => setOpenMenu(null)}>5G Home Broadband (£18/mo)</Link></li>
+                  <li><Link href="/broadband" onClick={() => setOpenMenu(null)}>£300 Switcher Guarantee</Link></li>
+                  <li><Link href="/broadband" onClick={() => setOpenMenu(null)}>5G Mobile MiFi (£14/mo)</Link></li>
                   <li><Link href="/admin/plans" onClick={() => setOpenMenu(null)}>Full Tariff Catalogue (52 deals) →</Link></li>
                 </ul>
               </div>
@@ -480,20 +495,13 @@ export function ThreeStorefront() {
                   Save up to £1035 and go unlimited when you trade in an eligible phone. Pro further.
                 </p>
                 <div className="three-hero-actions">
-                  <button
-                    type="button"
+                  <Link
+                    href="/devices/iphone-18-pro"
                     className="three-cta-pill three-cta-pill--white"
-                    onClick={() =>
-                      addToBasket({
-                        id: "iphone-18-pro",
-                        name: "iPhone 18 Pro · Unlimited 5G Plan",
-                        price: "£54.00 / mo",
-                        upfront: "£45 upfront",
-                      })
-                    }
+                    style={{ textDecoration: "none" }}
                   >
-                    Buy iPhone 18 Pro
-                  </button>
+                    View iPhone 18 Pro deals →
+                  </Link>
                   <button
                     type="button"
                     className="three-cta-pill three-cta-pill--outline-light"
@@ -511,10 +519,13 @@ export function ThreeStorefront() {
                 </p>
               </div>
               <div className="three-hero-banner__visual">
-                <img
-                  src="https://www.three.co.uk/content/dam/live-asset/web/Pages/Home/620x620-centre-iphone-17-lavender.png"
-                  alt="iPhone Pro Series on Three"
-                />
+                <Link href="/devices/iphone-18-pro">
+                  <img
+                    src="https://www.three.co.uk/content/dam/live-asset/web/Pages/Home/620x620-centre-iphone-17-lavender.png"
+                    alt="iPhone Pro Series on Three"
+                    style={{ cursor: "pointer" }}
+                  />
+                </Link>
               </div>
             </div>
 
@@ -529,20 +540,13 @@ export function ThreeStorefront() {
                     <button type="button" onClick={() => setShowTerms(true)}>[1]</button>
                   </p>
                   <div className="three-card-actions">
-                    <button
-                      type="button"
+                    <Link
+                      href="/sim-only"
                       className="three-cta-pill three-cta-pill--black"
-                      onClick={() =>
-                        addToBasket({
-                          id: "sim-unl-23",
-                          name: "Three Unlimited Data SIM (24m)",
-                          price: "£23.00 / mo",
-                          upfront: "£0 upfront",
-                        })
-                      }
+                      style={{ textDecoration: "none" }}
                     >
-                      Find out more
-                    </button>
+                      Find out more →
+                    </Link>
                     <button
                       type="button"
                       className="three-link-btn"
@@ -553,10 +557,12 @@ export function ThreeStorefront() {
                   </div>
                 </div>
                 <div className="three-promo-card__img">
-                  <img
-                    src="https://www.three.co.uk/content/dam/live-asset/web/device-images/sim/1100x1100-simo-go-unlimited-23-home-shop.png"
-                    alt="Three Unlimited data SIM £23"
-                  />
+                  <Link href="/sim-only">
+                    <img
+                      src="https://www.three.co.uk/content/dam/live-asset/web/device-images/sim/1100x1100-simo-go-unlimited-23-home-shop.png"
+                      alt="Three Unlimited data SIM £23"
+                    />
+                  </Link>
                 </div>
               </article>
 
@@ -569,20 +575,22 @@ export function ThreeStorefront() {
                     <button type="button" onClick={() => setShowTerms(true)}>[1]</button>
                   </p>
                   <div className="three-card-actions">
-                    <button
-                      type="button"
+                    <Link
+                      href="/devices/google-pixel-11"
                       className="three-cta-pill three-cta-pill--black"
-                      onClick={() => askAi("Quote me the Google Pixel 11 256GB deal")}
+                      style={{ textDecoration: "none" }}
                     >
-                      Get this offer
-                    </button>
+                      Get this offer →
+                    </Link>
                   </div>
                 </div>
                 <div className="three-promo-card__img">
-                  <img
-                    src="https://www.three.co.uk/content/dam/live-asset/web/trading/bau-trading/1100x1100-google-pixel-11-frost-576.png"
-                    alt="Google Pixel 11"
-                  />
+                  <Link href="/devices/google-pixel-11">
+                    <img
+                      src="https://www.three.co.uk/content/dam/live-asset/web/trading/bau-trading/1100x1100-google-pixel-11-frost-576.png"
+                      alt="Google Pixel 11"
+                    />
+                  </Link>
                 </div>
               </article>
 
@@ -595,20 +603,22 @@ export function ThreeStorefront() {
                     <button type="button" onClick={() => setShowTerms(true)}>[1]</button>
                   </p>
                   <div className="three-card-actions">
-                    <button
-                      type="button"
+                    <Link
+                      href="/devices/samsung-galaxy-s26"
                       className="three-cta-pill three-cta-pill--black"
-                      onClick={() => askAi("Quote me the Samsung Galaxy S25 FE and Galaxy S26 deals")}
+                      style={{ textDecoration: "none" }}
                     >
-                      Buy now
-                    </button>
+                      Buy now →
+                    </Link>
                   </div>
                 </div>
                 <div className="three-promo-card__img">
-                  <img
-                    src="https://www.three.co.uk/content/dam/live-asset/web/Pages/Home/1100x1100-samsung-galaxy-26-fe-pistachio.png"
-                    alt="Samsung Galaxy S26 FE"
-                  />
+                  <Link href="/devices/samsung-galaxy-s26">
+                    <img
+                      src="https://www.three.co.uk/content/dam/live-asset/web/Pages/Home/1100x1100-samsung-galaxy-26-fe-pistachio.png"
+                      alt="Samsung Galaxy S26 FE"
+                    />
+                  </Link>
                 </div>
               </article>
             </div>
@@ -659,10 +669,14 @@ export function ThreeStorefront() {
                 {POPULAR_SHOWCASE.map(item => (
                   <div key={item.id} className="three-product-card">
                     <span className="three-product-tag">{item.tag}</span>
-                    <div className="three-product-img-wrap">
+                    <Link href={`/devices/${item.slug}`} className="three-product-img-wrap">
                       <img src={item.img} alt={item.title} />
-                    </div>
-                    <h3>{item.title}</h3>
+                    </Link>
+                    <h3>
+                      <Link href={`/devices/${item.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        {item.title}
+                      </Link>
+                    </h3>
                     <p className="three-product-sub">{item.subtitle}</p>
                     <div className="three-product-price-box">
                       <div>
@@ -677,21 +691,13 @@ export function ThreeStorefront() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
-                      <button
-                        type="button"
+                      <Link
+                        href={`/devices/${item.slug}`}
                         className="three-cta-pill three-cta-pill--black"
-                        style={{ flex: 1, justifyContent: "center" }}
-                        onClick={() =>
-                          addToBasket({
-                            id: item.id,
-                            name: item.title,
-                            price: `${item.monthly}/mo`,
-                            upfront: item.upfront,
-                          })
-                        }
+                        style={{ flex: 1, justifyContent: "center", textDecoration: "none" }}
                       >
-                        Choose deal
-                      </button>
+                        View deal →
+                      </Link>
                       <button
                         type="button"
                         className="three-cta-pill three-cta-pill--outline"
@@ -707,58 +713,55 @@ export function ThreeStorefront() {
 
             {dealTab === "phones" && (
               <div className="three-popular-grid">
-                {phoneDeals.slice(0, 12).map(d => (
-                  <div key={d.id} className="three-product-card">
-                    <span className="three-product-tag">{d.network.toUpperCase()} · 5G</span>
-                    <h3>
-                      {d.model} · {d.storageGb}GB
-                    </h3>
-                    <p className="three-product-sub">
-                      Colour: {d.colour} · {d.dataGb === "unlimited" ? "Unlimited" : `${d.dataGb}GB`} 5G data · Unlimited mins &amp; texts
-                    </p>
-                    <div className="three-product-price-box">
-                      <div>
-                        <span className="three-price-big">
-                          £{d.monthly.toFixed(d.monthly % 1 ? 2 : 0)}
-                        </span>
-                        <span className="three-price-unit"> a month</span>
-                      </div>
-                      <div className="three-price-meta">
-                        £{d.upfront} upfront · {d.contractMonths} months
-                      </div>
-                      {d.priceRises?.[0] && (
-                        <div className="three-legal-mini" style={{ marginTop: 4 }}>
-                          Increases to £{d.priceRises[0].monthly.toFixed(2)} Apr 27, £
-                          {(d.priceRises[1]?.monthly ?? d.priceRises[0].monthly).toFixed(2)} Apr 28. [1]
+                {phoneDeals.slice(0, 12).map(d => {
+                  const slug = d.model.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                  return (
+                    <div key={d.id} className="three-product-card">
+                      <span className="three-product-tag">{d.network.toUpperCase()} · 5G</span>
+                      <h3>
+                        <Link href={`/devices/${slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                          {d.model} · {d.storageGb}GB
+                        </Link>
+                      </h3>
+                      <p className="three-product-sub">
+                        Colour: {d.colour} · {d.dataGb === "unlimited" ? "Unlimited" : `${d.dataGb}GB`} 5G data · Unlimited mins &amp; texts
+                      </p>
+                      <div className="three-product-price-box">
+                        <div>
+                          <span className="three-price-big">
+                            £{d.monthly.toFixed(d.monthly % 1 ? 2 : 0)}
+                          </span>
+                          <span className="three-price-unit"> a month</span>
                         </div>
-                      )}
+                        <div className="three-price-meta">
+                          £{d.upfront} upfront · {d.contractMonths} months
+                        </div>
+                        {d.priceRises?.[0] && (
+                          <div className="three-legal-mini" style={{ marginTop: 4 }}>
+                            Increases to £{d.priceRises[0].monthly.toFixed(2)} Apr 27, £
+                            {(d.priceRises[1]?.monthly ?? d.priceRises[0].monthly).toFixed(2)} Apr 28. [1]
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                        <Link
+                          href={`/devices/${slug}`}
+                          className="three-cta-pill three-cta-pill--black"
+                          style={{ flex: 1, justifyContent: "center", textDecoration: "none" }}
+                        >
+                          View deal →
+                        </Link>
+                        <button
+                          type="button"
+                          className="three-cta-pill three-cta-pill--outline"
+                          onClick={() => askAi(`Quote me ${d.model} ${d.storageGb}GB on ${d.network}`)}
+                        >
+                          Ask AI
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
-                      <button
-                        type="button"
-                        className="three-cta-pill three-cta-pill--black"
-                        style={{ flex: 1, justifyContent: "center" }}
-                        onClick={() =>
-                          addToBasket({
-                            id: d.id,
-                            name: `${d.model} ${d.storageGb}GB (${d.network})`,
-                            price: `£${d.monthly}/mo`,
-                            upfront: `£${d.upfront} upfront`,
-                          })
-                        }
-                      >
-                        Add to basket
-                      </button>
-                      <button
-                        type="button"
-                        className="three-cta-pill three-cta-pill--outline"
-                        onClick={() => askAi(`Quote me ${d.model} ${d.storageGb}GB on ${d.network}`)}
-                      >
-                        Ask AI
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -879,12 +882,32 @@ export function ThreeStorefront() {
                 {postcodeResult && (
                   <div className="three-postcode-result">{postcodeResult}</div>
                 )}
+
+                <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <Link
+                    href="/broadband"
+                    className="three-cta-pill three-cta-pill--black"
+                    style={{ textDecoration: "none" }}
+                  >
+                    View all Broadband plans (£18/mo) →
+                  </Link>
+                  <button
+                    type="button"
+                    className="three-link-btn"
+                    onClick={() => askAi("How does Three 5G broadband work and what is the £300 switcher bonus?")}
+                  >
+                    Ask AI about £300 bonus →
+                  </button>
+                </div>
               </div>
               <div className="three-broadband-banner__img">
-                <img
-                  src="https://www.three.co.uk/content/dam/live-asset/web/device-images/broadband/home-broadband/1690x1100-get-threes-home-broadband-with-price-18.png"
-                  alt="Three Home Broadband £18 a month"
-                />
+                <Link href="/broadband">
+                  <img
+                    src="https://www.three.co.uk/content/dam/live-asset/web/device-images/broadband/home-broadband/1690x1100-get-threes-home-broadband-with-price-18.png"
+                    alt="Three Home Broadband £18 a month"
+                    style={{ cursor: "pointer" }}
+                  />
+                </Link>
               </div>
             </div>
           </div>
@@ -897,17 +920,29 @@ export function ThreeStorefront() {
           <div className="three-container">
             <h2 className="three-center-heading">Take a look around</h2>
             <div className="three-quick-icons">
-              {QUICK_CATEGORIES.map(c => (
-                <button
-                  key={c.label}
-                  type="button"
-                  className="three-quick-icon-item"
-                  onClick={() => askAi(c.query)}
-                >
-                  <span className="three-quick-icon-circle">{c.icon}</span>
-                  <span className="three-quick-icon-label">{c.label}</span>
-                </button>
-              ))}
+              {QUICK_CATEGORIES.map(c =>
+                c.href ? (
+                  <Link
+                    key={c.label}
+                    href={c.href}
+                    className="three-quick-icon-item"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <span className="three-quick-icon-circle">{c.icon}</span>
+                    <span className="three-quick-icon-label">{c.label}</span>
+                  </Link>
+                ) : (
+                  <button
+                    key={c.label}
+                    type="button"
+                    className="three-quick-icon-item"
+                    onClick={() => askAi(c.query || c.label)}
+                  >
+                    <span className="three-quick-icon-circle">{c.icon}</span>
+                    <span className="three-quick-icon-label">{c.label}</span>
+                  </button>
+                )
+              )}
             </div>
           </div>
         </section>

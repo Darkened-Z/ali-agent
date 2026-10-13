@@ -56,6 +56,23 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     try {
+      if (typeof window !== "undefined") {
+        const sp = new URLSearchParams(window.location.search);
+        const qName = sp.get("name");
+        const qMonthly = sp.get("monthly");
+        const qUpfront = sp.get("upfront");
+        if (qName && qMonthly) {
+          const itemFromUrl: BasketItem = {
+            id: `item-${Date.now()}`,
+            name: qName,
+            price: `£${parseFloat(qMonthly).toFixed(2)}/mo`,
+            upfront: qUpfront ? `£${parseFloat(qUpfront).toFixed(2)} upfront` : "£0.00 upfront",
+          };
+          setBasket([itemFromUrl]);
+          return;
+        }
+      }
+
       const saved = localStorage.getItem("three_basket");
       if (saved) {
         const parsed = JSON.parse(saved);
