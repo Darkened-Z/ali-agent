@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ThreeLogo } from "./ThreeLogo";
 
 type Props = {
   liveCount?: number;
@@ -54,12 +55,24 @@ export function TopBar({ liveCount = 3, queuedCount = 12 }: Props) {
   return (
     <header className="topbar">
       <Link href="/" className="brand" style={{ textDecoration: "none", color: "inherit" }}>
-        <div className="brand-mark">A</div>
+        <div
+          className="brand-mark"
+          style={{
+            background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
+            color: "#000",
+            borderRadius: 6,
+            width: 30,
+            height: 30,
+          }}
+        >
+          <ThreeLogo size={20} fill="#000" />
+        </div>
         <div className="brand-name">
-          Ali Agent<span>Live · v1.0</span>
+          Three UK · Ali Agent<span>Call Center v1.0</span>
         </div>
       </Link>
       <nav className="topnav" aria-label="Sections">
+        <Link href="/" className={isActive("/") ? "active" : ""}>Three.co.uk Store</Link>
         <Link href="/admin" className={isActive("/admin") ? "active" : ""}>Dashboard</Link>
         <Link href="/form" className={isActive("/form") ? "active" : ""}>Lead form</Link>
         <Link href="/widget" className={isActive("/widget") ? "active" : ""}>Chat widget</Link>

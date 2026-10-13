@@ -5,7 +5,7 @@ import "./globals.css";
 const hanken = Hanken_Grotesk({
   variable: "--font-hanken",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "500", "700", "800"],
   display: "swap",
 });
 
@@ -17,8 +17,8 @@ const jbMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ali Agent — Chat + Leads for Mobile & SIM",
-  description: "AI-powered call center automation for mobile phone and SIM retail.",
+  title: "Three | Phones, Broadband & SIM Only deals",
+  description: "Explore the latest Pay Monthly phones, Unlimited 5G SIM Only deals, and £18/mo Home Broadband on Three — powered by Ali Agent AI.",
 };
 
 // Runs before hydration to prevent theme flash

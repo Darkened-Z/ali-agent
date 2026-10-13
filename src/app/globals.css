@@ -688,3 +688,1043 @@ section.surface:first-of-type { border-top: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ==========================================================================
+   THREE.CO.UK REPLICA DESIGN SYSTEM (.three-*)
+   Extracted from https://www.three.co.uk/ clientlib-site.min.css
+   Coral-Peach-Pink gradients · #fdf2f0 blush · #000 pill CTAs · 20px cards
+========================================================================== */
+
+.three-page {
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-hanken), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+}
+
+.three-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.three-visually-sub {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b4b4b;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 1. Top Utility Header ---------- */
+.three-top-utility {
+  background: #ffffff;
+  border-bottom: 1px solid #ece6e5;
+  padding: 10px 0;
+  font-size: 13px;
+  position: relative;
+  z-index: 60;
+}
+
+.three-top-utility__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.three-top-utility__left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.three-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 160ms ease;
+}
+.three-logo-link:hover {
+  transform: scale(1.04);
+}
+
+.three-division-tabs {
+  display: inline-flex;
+  background: #f5eeed;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.three-division-tabs button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  font-family: inherit;
+}
+.three-division-tabs button.active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.three-top-utility__right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.three-phone-order {
+  color: #111;
+  font-size: 13px;
+}
+
+.three-utility-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.three-utility-links button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.three-utility-links button:hover {
+  color: #ff5b4d;
+}
+
+.three-pill-utility {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fdf2f0;
+  border: 1px solid #ffaba9;
+  color: #000;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+}
+.three-pill-utility:hover {
+  background: #ffaba9;
+}
+.three-pill-utility--dark {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+.three-pill-utility--dark:hover {
+  background: #ff7b67;
+  border-color: #ff7b67;
+  color: #000;
+}
+
+.three-account-btn,
+.three-basket-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid #d8d0cf;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+  cursor: pointer;
+  font-family: inherit;
+}
+.three-account-btn:hover,
+.three-basket-btn:hover {
+  border-color: #000;
+  background: #fdf2f0;
+}
+
+.three-basket-badge {
+  background: #ff7b67;
+  color: #000;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.three-dropdown-card {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 260px;
+  background: #fff;
+  border: 1px solid #e5dcd9;
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 90;
+}
+.three-dropdown-card a {
+  color: #000;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.three-dropdown-card a:hover {
+  background: #fdf2f0;
+}
+
+/* ---------- 2. Main Coral-Peach Gradient Header & MegaNav ---------- */
+.three-main-header {
+  background: linear-gradient(90deg, #ff7b67 0%, #ff8474 42%, #ffaba9 100%);
+  position: sticky;
+  top: 0;
+  z-index: 55;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.three-main-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.three-main-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.three-nav-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 150ms ease, color 150ms ease;
+}
+.three-nav-btn span {
+  font-size: 11px;
+}
+.three-nav-btn:hover,
+.three-nav-btn.active {
+  background: #000000;
+  color: #ffffff;
+}
+
+.three-header-search {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 4px 4px 4px 16px;
+  min-width: 310px;
+  max-width: 420px;
+  flex: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.three-header-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 13px;
+  color: #000;
+  font-family: inherit;
+}
+.three-header-search button {
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.three-header-search button:hover {
+  background: #222;
+}
+
+.three-meganav {
+  background: #ffffff;
+  border-bottom: 2px solid #ff8474;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+  padding: 28px 0;
+}
+.three-meganav__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+.three-meganav h4 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ffaba9;
+  color: #000;
+}
+.three-meganav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.three-meganav button,
+.three-meganav a {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+  color: #222;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+.three-meganav button:hover,
+.three-meganav a:hover {
+  color: #ff5b4d;
+  text-decoration: underline;
+}
+
+/* ---------- Basket Drawer ---------- */
+.three-basket-drawer {
+  position: fixed;
+  top: 118px;
+  right: 24px;
+  width: 340px;
+  background: #ffffff;
+  border: 2px solid #000;
+  border-radius: 20px;
+  padding: 18px;
+  z-index: 85;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+}
+.three-basket-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+.three-basket-drawer__head button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+.three-basket-list {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.three-basket-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #fdf2f0;
+  border-radius: 10px;
+}
+
+/* ---------- Pill Buttons ---------- */
+.three-cta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  border: 2px solid transparent;
+  transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+}
+.three-cta-pill:hover {
+  transform: translateY(-1px);
+}
+.three-cta-pill--black {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+.three-cta-pill--black:hover {
+  background: #262626;
+}
+.three-cta-pill--white {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+.three-cta-pill--white:hover {
+  background: #ffaba9;
+  border-color: #ffaba9;
+}
+.three-cta-pill--outline {
+  background: transparent;
+  color: #000000;
+  border-color: #000000;
+  padding: 10px 16px;
+}
+.three-cta-pill--outline:hover {
+  background: #000000;
+  color: #ffffff;
+}
+.three-cta-pill--outline-light {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.three-cta-pill--outline-light:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #ffffff;
+}
+
+.three-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.three-link-btn:hover {
+  color: #d94638;
+}
+
+.three-kicker-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff7b67, #ffaba9);
+  color: #000000;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.three-kicker-pill--dark {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* ---------- 3. Hero Section & 3 Promo Cards ---------- */
+.three-hero-section {
+  padding: 24px 0 44px;
+  background: linear-gradient(180deg, #fdf2f0 0%, #ffffff 100%);
+}
+
+.three-hero-banner {
+  background: radial-gradient(circle at 80% 30%, #3a233b 0%, #121016 55%, #050507 100%);
+  color: #ffffff;
+  border-radius: 26px;
+  padding: 44px 52px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 32px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+}
+
+.three-hero-banner__copy h2 {
+  font-size: clamp(36px, 4.6vw, 60px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  margin: 0 0 14px;
+}
+
+.three-hero-lead {
+  font-size: clamp(17px, 1.8vw, 22px);
+  color: #f3e8e6;
+  max-width: 46ch;
+  margin: 0 0 24px;
+  line-height: 1.4;
+}
+
+.three-hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.three-hero-upgrade-note {
+  font-size: 13px;
+  color: #d6c8c6;
+  margin: 0;
+}
+
+.three-hero-banner__visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.three-hero-banner__visual img {
+  max-height: 330px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.45));
+}
+
+/* 3 Promo Cards below Hero */
+.three-promo-trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 24px;
+}
+
+.three-promo-card {
+  background: #fdf2f0;
+  border: 1px solid #f3dad6;
+  border-radius: 22px;
+  padding: 28px 26px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.three-promo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.three-promo-card--coral {
+  background: linear-gradient(155deg, #ff7b67 0%, #ff9486 48%, #ffd2cf 100%);
+  border-color: #ff8474;
+}
+
+.three-promo-card__body h3 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+  margin: 0 0 10px;
+}
+
+.three-promo-card__body p {
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0 0 10px;
+  color: #191919;
+}
+
+.three-legal-mini {
+  font-size: 12px !important;
+  color: #444 !important;
+  line-height: 1.4 !important;
+}
+.three-legal-mini button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  color: inherit;
+}
+
+.three-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.three-promo-card__img {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 190px;
+}
+.three-promo-card__img img {
+  max-height: 190px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---------- 4. Generic Sections & Popular Deals Grid ---------- */
+.three-section {
+  padding: 56px 0;
+}
+.three-section--compact {
+  padding: 36px 0;
+}
+.three-section--blush {
+  background: #fdf2f0;
+}
+
+.three-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.three-section-header h2,
+.three-center-heading {
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: #000000;
+}
+.three-center-heading {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.three-pill-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.three-pill-tabs button {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #dec9c6;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  cursor: pointer;
+}
+.three-pill-tabs button.active {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+.three-popular-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.three-product-card {
+  background: #ffffff;
+  border: 1px solid #edd9d6;
+  border-radius: 22px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.three-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.09);
+}
+
+.three-product-tag {
+  align-self: flex-start;
+  background: #ffe3de;
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.three-product-img-wrap {
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+.three-product-img-wrap img {
+  max-height: 175px;
+  width: auto;
+  object-fit: contain;
+}
+
+.three-product-card h3 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 4px 0 0;
+}
+
+.three-product-sub {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.three-product-price-box {
+  background: #fdf2f0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 6px 0;
+}
+.three-price-big {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.three-price-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.three-price-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: #222;
+  margin-top: 2px;
+}
+
+/* ---------- 5. Home Broadband Banner ---------- */
+.three-broadband-banner {
+  background: linear-gradient(100deg, #ff7b67 0%, #ff8474 35%, #ffaba9 75%, #ffdced 100%);
+  border-radius: 26px;
+  padding: 42px 48px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 28px;
+  overflow: hidden;
+}
+
+.three-broadband-banner__copy h2 {
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0 0 8px;
+}
+
+.three-postcode-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.three-postcode-box input {
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-family: inherit;
+  min-width: 240px;
+  outline: none;
+}
+
+.three-postcode-result {
+  margin-top: 12px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.three-broadband-banner__img {
+  display: flex;
+  justify-content: center;
+}
+.three-broadband-banner__img img {
+  max-height: 290px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---------- 6. Quick Category Icons ("Take a look around") ---------- */
+.three-quick-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.three-quick-icon-item {
+  appearance: none;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 4px;
+  font-family: inherit;
+  text-align: center;
+}
+
+.three-quick-icon-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff0ed 0%, #ffd5d1 100%);
+  border: 2px solid #ffaba9;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+.three-quick-icon-item:hover .three-quick-icon-circle {
+  transform: translateY(-4px) scale(1.05);
+  background: linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%);
+  border-color: #000;
+}
+
+.three-quick-icon-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+}
+
+/* ---------- 7–11. 2-Col & 3-Col Lifestyle / Partner Cards ---------- */
+.three-two-col-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.three-three-col-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.three-lifestyle-card {
+  background: #ffffff;
+  border: 1px solid #ead8d6;
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.three-lifestyle-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.three-lifestyle-card > img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.three-lifestyle-card__body {
+  padding: 24px 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  align-items: flex-start;
+}
+.three-lifestyle-card__body h3 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+.three-lifestyle-card__body p {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+  margin: 0 0 auto;
+}
+
+/* ---------- 12. Terms & Conditions Bar ---------- */
+.three-terms-bar {
+  background: #f6ecea;
+  border-top: 1px solid #e5d2cf;
+  padding: 18px 0;
+}
+.three-terms-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: #000;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.three-terms-content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #dec8c4;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* ---------- 13. Dark Three.co.uk Footer ---------- */
+.three-footer {
+  background: #000000;
+  color: #ffffff;
+  padding: 56px 0 40px;
+}
+
+.three-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid #262626;
+}
+
+.three-footer h4 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #ffaba9;
+}
+
+.three-footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.three-footer button,
+.three-footer a {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 14px;
+  color: #e0e0e0;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.three-footer button:hover,
+.three-footer a:hover {
+  color: #ff7b67;
+  text-decoration: underline;
+}
+
+.three-footer__bottom {
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #b5b5b5;
+}
+
+.three-footer__sister-brands {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ---------- Responsive Three Storefront ---------- */
+@media (max-width: 1080px) {
+  .three-promo-trio {
+    grid-template-columns: 1fr;
+  }
+  .three-popular-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .three-three-col-grid {
+    grid-template-columns: 1fr;
+  }
+  .three-meganav__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .three-footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .three-hero-banner,
+  .three-broadband-banner {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+  }
+  .three-popular-grid,
+  .three-two-col-grid,
+  .three-footer__grid {
+    grid-template-columns: 1fr;
+  }
+  .three-utility-links {
+    display: none;
+  }
+}
+
