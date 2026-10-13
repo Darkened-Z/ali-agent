@@ -270,19 +270,64 @@ export function ConversationsView() {
 
         <div className="col">
           <div className="thread-head" style={{ position: "relative" }}>
-            <div className="thread-title">
-              {active.name} <small>{active.phone} · {active.city}</small>
-              {active.assignee && (
-                <span className="badge" style={{ marginLeft: 8 }}>
-                  ASSIGNED: {active.assignee.toUpperCase()}
-                </span>
-              )}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
+                  color: "#000",
+                  fontWeight: 900,
+                  fontSize: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  boxShadow: "0 2px 8px rgba(255, 123, 103, 0.3)",
+                }}
+              >
+                {active.name.charAt(0)}
+              </div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{active.name}</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-jbmono), monospace",
+                      fontSize: 12,
+                      color: "#475569",
+                      background: "#f1f5f9",
+                      padding: "2px 8px",
+                      borderRadius: 6,
+                    }}
+                  >
+                    {active.phone}
+                  </span>
+                  {active.city && (
+                    <span style={{ fontSize: 12, color: "#64748b" }}>· {active.city}</span>
+                  )}
+                  {active.assignee && (
+                    <span className="badge" style={{ marginLeft: 4 }}>
+                      ASSIGNED: {active.assignee.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                  Active channel:{" "}
+                  <b style={{ color: active.channel === "wa" ? "#047857" : "#0284c7" }}>
+                    {active.channel === "wa" ? "WhatsApp Business" : "Web Live Chat"}
+                  </b>
+                </div>
+              </div>
             </div>
+
             <div className="thread-actions">
               <div style={{ position: "relative" }}>
                 <button
                   className="btn ghost"
                   onClick={() => setShowAssignMenu(v => !v)}
+                  style={{ border: "1px solid #cbd5e1", background: "#f8fafc" }}
                 >
                   {active.assignee ? `Assigned: ${active.assignee.split(" ")[0]}` : "Assign"}
                 </button>
@@ -293,12 +338,15 @@ export function ConversationsView() {
                       right: 0,
                       top: "100%",
                       marginTop: 4,
-                      background: "var(--paper)",
-                      border: "1px solid var(--ink)",
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: 12,
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
                       zIndex: 30,
                       minWidth: 180,
                       display: "flex",
                       flexDirection: "column",
+                      overflow: "hidden",
                     }}
                   >
                     {teamList.map(m => (
@@ -306,17 +354,17 @@ export function ConversationsView() {
                         key={m.id}
                         onClick={() => assignAgent(m.name)}
                         style={{
-                          padding: "8px 12px",
+                          padding: "10px 14px",
                           textAlign: "left",
                           background: "transparent",
                           border: "none",
-                          borderBottom: "1px solid var(--line)",
+                          borderBottom: "1px solid #f1f5f9",
                           cursor: "pointer",
                           fontSize: 12,
-                          color: "var(--ink)",
+                          color: "#0f172a",
                         }}
                       >
-                        {m.name} <span className="mono" style={{ color: "var(--muted)", fontSize: 10 }}>({m.role})</span>
+                        {m.name} <span className="mono" style={{ color: "#64748b", fontSize: 10 }}>({m.role})</span>
                       </button>
                     ))}
                   </div>
@@ -325,16 +373,22 @@ export function ConversationsView() {
 
               <button
                 className="btn"
+                style={{
+                  background: active.status === "waiting" ? "#ecfdf5" : "#fffbeb",
+                  borderColor: active.status === "waiting" ? "#a7f3d0" : "#fde68a",
+                  color: active.status === "waiting" ? "#047857" : "#b45309",
+                }}
                 onClick={() =>
                   updateConvStatus(active.status === "waiting" ? "bot" : "waiting")
                 }
               >
-                {active.status === "waiting" ? "Resume bot" : "Pause bot"}
+                {active.status === "waiting" ? "Resume bot ▶" : "Pause bot ⏸"}
               </button>
 
               {active.status !== "closed" && (
                 <button
                   className="btn"
+                  style={{ background: "#ecfdf5", borderColor: "#a7f3d0", color: "#047857" }}
                   onClick={() => updateConvStatus("closed")}
                 >
                   Resolve ✓
@@ -343,6 +397,7 @@ export function ConversationsView() {
 
               <button
                 className="btn primary"
+                style={{ background: "#0f172a", color: "#ffffff", borderColor: "#0f172a" }}
                 onClick={() =>
                   updateConvStatus(active.status === "human" ? "bot" : "human")
                 }
@@ -353,7 +408,7 @@ export function ConversationsView() {
               <button
                 className="btn"
                 title="Delete this conversation"
-                style={{ color: "#d32f2f", borderColor: "#ffcdd2" }}
+                style={{ color: "#b91c1c", borderColor: "#fecaca", background: "#fef2f2" }}
                 onClick={async () => {
                   if (!confirm(`Delete conversation with ${active.name}?`)) return;
                   await fetch(`/api/conversations?id=${encodeURIComponent(active.id)}`, { method: "DELETE" });
@@ -544,8 +599,46 @@ export function ConversationsView() {
         </div>
 
         <aside className="col rail">
+          {/* Profile Card Header */}
+          <div
+            style={{
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: 16,
+              padding: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
+                color: "#000",
+                fontWeight: 900,
+                fontSize: 17,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {active.name.charAt(0)}
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>{active.name}</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>{active.phone}</div>
+              <div style={{ fontSize: 11, color: "#047857", fontWeight: 700, marginTop: 2 }}>
+                ✓ Verified Three Customer
+              </div>
+            </div>
+          </div>
+
           <div>
-            <h3>Lead</h3>
+            <h3>Lead Information</h3>
             <dl className="kv">
               <dt>Name</dt><dd>{active.name}</dd>
               <dt>Phone</dt><dd><span className="mono">{active.phone}</span></dd>
@@ -557,7 +650,7 @@ export function ConversationsView() {
 
           {active.tags && (
             <div>
-              <h3>Interest</h3>
+              <h3>Device &amp; Plan Interest</h3>
               <div className="tags">
                 {active.tags.map(t => (
                   <span key={t} className="tag">{t}</span>
@@ -567,30 +660,70 @@ export function ConversationsView() {
           )}
 
           <div>
-            <h3>
-              Score ·{" "}
-              <span
-                className="mono"
-                style={{ color: (active.score ?? 50) >= 70 ? "var(--signal)" : "var(--muted)" }}
+            <h3>Lead Intent Score</h3>
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: "14px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span
+                  style={{
+                    background: (active.score ?? 50) >= 70 ? "#fee2e2" : "#fef3c7",
+                    color: (active.score ?? 50) >= 70 ? "#b91c1c" : "#92400e",
+                    fontWeight: 900,
+                    fontSize: 11,
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  {(active.score ?? 50) >= 70
+                    ? "🔥 HOT INTENT"
+                    : (active.score ?? 50) >= 40
+                    ? "⚡ WARM"
+                    : "❄ COLD"}
+                </span>
+                <span style={{ fontFamily: "var(--font-jbmono), monospace", fontSize: 18, fontWeight: 900, color: "#0f172a" }}>
+                  {active.score ?? 50}/100
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 6,
+                  width: "100%",
+                  background: "#e2e8f0",
+                  borderRadius: 999,
+                  overflow: "hidden",
+                  marginBottom: 8,
+                }}
               >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${active.score ?? 50}%`,
+                    background:
+                      (active.score ?? 50) >= 70
+                        ? "linear-gradient(90deg, #ff7b67, #ef4444)"
+                        : "linear-gradient(90deg, #ff7b67, #f59e0b)",
+                    borderRadius: 999,
+                  }}
+                />
+              </div>
+              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.4 }}>
                 {(active.score ?? 50) >= 70
-                  ? "HOT"
-                  : (active.score ?? 50) >= 40
-                  ? "WARM"
-                  : "COLD"}{" "}
-                · {active.score ?? 50}
-              </span>
-            </h3>
-            <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.5 }}>
-              {(active.score ?? 50) >= 70
-                ? "High-intent phrasing · asked about price and terms · engaged for 4+ minutes"
-                : "Casual browsing · early-funnel · no purchase signal yet"}
+                  ? "High-intent customer phrasing: inquired about price, delivery & contract term. Active 4+ minutes."
+                  : "Casual browsing prospect: early discovery phase."}
+              </div>
             </div>
           </div>
 
           {active.timeline && (
             <div>
-              <h3>Timeline</h3>
+              <h3>Activity Timeline</h3>
               <div className="timeline">
                 {active.timeline.map((t, i) => (
                   <div key={i} className="row">

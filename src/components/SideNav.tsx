@@ -111,17 +111,31 @@ export function SideNav() {
           display: "flex",
           alignItems: "center",
           gap: 10,
-          padding: "8px 10px 14px",
-          borderBottom: "1px solid var(--line)",
-          marginBottom: 10,
+          padding: "10px 10px 14px",
+          borderBottom: "1px solid #1f232e",
+          marginBottom: 12,
           textDecoration: "none",
           color: "inherit",
         }}
       >
-        <ThreeLogo size={32} fill="#000" />
+        <div
+          style={{
+            background: "linear-gradient(135deg, #ff7b67 0%, #ffaba9 100%)",
+            borderRadius: 8,
+            padding: "5px 6px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(255, 123, 103, 0.3)",
+          }}
+        >
+          <ThreeLogo size={22} fill="#000" />
+        </div>
         <div>
-          <div style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.02em" }}>Three UK Admin</div>
-          <div style={{ fontSize: 10, color: "var(--signal)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: "-0.02em", color: "#ffffff" }}>
+            Three UK Admin
+          </div>
+          <div style={{ fontSize: 10, color: "#ff7b67", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Call Center Hub
           </div>
         </div>
