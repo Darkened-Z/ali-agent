@@ -280,19 +280,8 @@ export function ThreeStorefront() {
                 </button>
               </li>
               <li>
-                <Link href="/checkout" className="three-pill-utility" style={{ background: "#fdf2f0", borderColor: "#ffaba9", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
-                  Checkout ({basket.length})
-                </Link>
-              </li>
-              <li>
-                <Link href="/form" className="three-pill-utility">
-                  Request callback
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="three-pill-utility three-pill-utility--dark">
-                  Staff Admin →
+                <Link href="/form">
+                  Contact
                 </Link>
               </li>
             </ul>
@@ -300,40 +289,53 @@ export function ThreeStorefront() {
             <div style={{ position: "relative" }}>
               <button
                 type="button"
-                className="three-account-btn"
+                className="three-header-link"
                 onClick={() => setShowMy3(v => !v)}
+                aria-expanded={showMy3}
               >
-                <span className="three-account-icon" style={{ display: "inline-flex", alignItems: "center" }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
                 <span>Login / My3</span>
-                <span style={{ fontSize: 10 }}>▾</span>
+                <span style={{ fontSize: 10, marginLeft: 2 }}>▾</span>
               </button>
               {showMy3 && (
                 <div className="three-dropdown-card">
-                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>My3 Account &amp; Staff</div>
-                  <Link href="/checkout" onClick={() => setShowMy3(false)} style={{ color: "#000", fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
-                    Checkout &amp; Order Confirmation (/checkout)
+                  <div style={{ fontWeight: 800, fontSize: 13, color: "#0f172a", marginBottom: 4, paddingBottom: 6, borderBottom: "1px solid #f1f5f9" }}>
+                    My3 Customer Account
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setShowMy3(false); setShowBasket(true); }}
+                    style={{ background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", fontSize: 13, color: "#0f172a", width: "100%", fontFamily: "inherit" }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                    Review Basket ({basket.length})
+                  </button>
+                  <Link href="/checkout" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Express Checkout
+                  </Link>
+                  <Link href="/form" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Request Callback
+                  </Link>
+
+                  <div style={{ fontWeight: 800, fontSize: 11, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 8, paddingTop: 8, borderTop: "1px solid #f1f5f9" }}>
+                    Staff &amp; Operations Portal
+                  </div>
+                  <Link href="/admin" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Call Center Dashboard
                   </Link>
                   <Link href="/admin/orders" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
-                    Customer Orders Queue (/admin/orders)
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+                    Customer Orders Queue
                   </Link>
-                  <Link href="/admin" onClick={() => setShowMy3(false)}>
-                    Open Call Center Dashboard (/admin)
-                  </Link>
-                  <Link href="/admin/leads" onClick={() => setShowMy3(false)}>
-                    View Live Leads Queue (/admin/leads)
-                  </Link>
-                  <Link href="/form" onClick={() => setShowMy3(false)}>
-                    Public Callback Form (/form)
-                  </Link>
-                  <Link href="/widget" onClick={() => setShowMy3(false)}>
-                    Widget Embed Demo (/widget)
+                  <Link href="/admin/leads" onClick={() => setShowMy3(false)} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Live Leads Queue
                   </Link>
                 </div>
               )}
@@ -341,14 +343,15 @@ export function ThreeStorefront() {
 
             <button
               type="button"
-              className="three-basket-btn"
+              className="three-header-link"
               onClick={() => setShowBasket(v => !v)}
+              aria-label="View shopping basket"
             >
               <span>Basket</span>
               {basket.length > 0 && (
                 <span className="three-basket-badge">{basket.length}</span>
               )}
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
@@ -399,12 +402,6 @@ export function ThreeStorefront() {
             >
               Help <span>▾</span>
             </button>
-            <Link href="/checkout" className="three-nav-btn" style={{ textDecoration: "none" }}>
-              Checkout
-            </Link>
-            <Link href="/admin" className="three-nav-btn" style={{ textDecoration: "none" }}>
-              Call Center Hub
-            </Link>
           </nav>
 
           <div className="three-header-search">
@@ -417,10 +414,11 @@ export function ThreeStorefront() {
                   setSearchQuery("");
                 }
               }}
-              placeholder="Ask AI or search iPhone 17, SIM Only…"
+              placeholder="Search devices, plans, offers..."
             />
             <button
               type="button"
+              aria-label="Search"
               onClick={() => {
                 if (searchQuery.trim()) {
                   askAi(searchQuery.trim());
@@ -430,7 +428,10 @@ export function ThreeStorefront() {
                 }
               }}
             >
-              Ask AI →
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </button>
           </div>
         </div>

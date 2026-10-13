@@ -63,10 +63,10 @@ export default function BroadbandPage() {
               <ThreeLogo size={40} fill="#000" />
             </Link>
             <div className="three-division-tabs">
-              <Link href="/" className="active" style={{ textDecoration: "none", color: "inherit", padding: "4px 10px" }}>
+              <Link href="/" className="active">
                 Personal
               </Link>
-              <Link href="/form" style={{ textDecoration: "none", color: "inherit", padding: "4px 10px" }}>
+              <Link href="/form">
                 Business Broadband
               </Link>
             </div>
@@ -78,14 +78,11 @@ export default function BroadbandPage() {
             <ul className="three-utility-links">
               <li>
                 <button type="button" onClick={() => askAi("How does Three 5G Home Broadband compare to BT or Virgin Media?")}>
-                  Ask AI Advisor
+                  Ask Advisor
                 </button>
               </li>
               <li>
-                <Link href="/checkout">Basket &amp; Checkout</Link>
-              </li>
-              <li>
-                <Link href="/admin">Staff Hub</Link>
+                <Link href="/checkout">Basket</Link>
               </li>
             </ul>
           </div>

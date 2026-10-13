@@ -185,8 +185,8 @@ export default function CheckoutPage() {
               <ThreeLogo size={42} fill="#000" />
             </Link>
             <span style={{ fontWeight: 700, fontSize: 14 }}>Official Order Confirmation</span>
-            <Link href="/admin" className="three-pill-utility three-pill-utility--dark">
-              Staff Portal (/admin) →
+            <Link href="/" style={{ color: "#000", fontSize: 13, textDecoration: "underline" }}>
+              ← Return to Three Store
             </Link>
           </div>
         </header>
@@ -376,9 +376,6 @@ export default function CheckoutPage() {
           <div className="three-top-utility__right">
             <Link href="/" style={{ color: "#000", fontSize: 13, textDecoration: "underline" }}>
               ← Continue shopping
-            </Link>
-            <Link href="/admin" className="three-pill-utility three-pill-utility--dark">
-              Call Center Staff (/admin)
             </Link>
           </div>
         </div>

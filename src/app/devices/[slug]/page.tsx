@@ -276,10 +276,10 @@ export default function DevicePDPPage({
               <ThreeLogo size={40} fill="#000" />
             </Link>
             <div className="three-division-tabs">
-              <Link href="/" className="active" style={{ textDecoration: "none", color: "inherit", padding: "4px 10px" }}>
+              <Link href="/" className="active">
                 Personal
               </Link>
-              <Link href="/form" style={{ textDecoration: "none", color: "inherit", padding: "4px 10px" }}>
+              <Link href="/form">
                 Business
               </Link>
             </div>
@@ -296,14 +296,11 @@ export default function DevicePDPPage({
                     askAi(`What are the key specs of the ${device.model}?`)
                   }
                 >
-                  Ask AI Advisor
+                  Ask Advisor
                 </button>
               </li>
               <li>
-                <Link href="/checkout">Basket &amp; Checkout</Link>
-              </li>
-              <li>
-                <Link href="/admin">Staff Hub</Link>
+                <Link href="/checkout">Basket</Link>
               </li>
             </ul>
           </div>
