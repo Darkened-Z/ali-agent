@@ -26,7 +26,7 @@ const POLL_MS = 4000;
 const OPENING: Msg[] = [
   {
     from: "bot",
-    text: "Hi! Welcome to Three · Ali Agent. Ask me about Pay Monthly phones, Unlimited SIMs, 5G Home Broadband, or switching your number.",
+    text: "Hi! Welcome to Three · ProxyTech. Ask me about Pay Monthly phones, Unlimited SIMs, 5G Home Broadband, or switching your number.",
     time: "Just now",
   },
 ];
@@ -315,7 +315,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
         </div>
         <div>
           <div className="who" style={{ fontWeight: 700, color: "#000" }}>
-            Three · Ali Agent AI
+            Three · ProxyTech AI
           </div>
           <div className="status" style={{ color: "#000", opacity: 0.8 }}>
             <span className="dot" style={{ background: "#000" }} />
@@ -402,7 +402,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
           →
         </button>
       </div>
-      <div className="widget-brand">THREE UK · POWERED BY ALI AGENT · {sessionId.toUpperCase()}</div>
+      <div className="widget-brand">THREE UK · POWERED BY PROXYTECH · {sessionId.toUpperCase()}</div>
     </div>
   );
 }

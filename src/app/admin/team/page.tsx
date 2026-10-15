@@ -163,7 +163,7 @@ export default function TeamPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="bilal@aliagent.co.uk"
+              placeholder="bilal@proxytech.co.uk"
               style={{ fontSize: 13, padding: "8px 10px" }}
             />
           </div>

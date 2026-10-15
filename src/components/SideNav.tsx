@@ -156,7 +156,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
 const isActive = (pathname: string | null, href: string) =>
   href === "/admin" ? pathname === "/admin" : !!pathname?.startsWith(href);
 
-export function SideNav({ signedInAs }: { signedInAs?: string }) {
+export function SideNav({ user }: { user: { name: string; email: string; dev: boolean } }) {
   const pathname = usePathname();
   const [counts, setCounts] = useState<Counts | null>(null);
   const [botEnabled, setBotEnabled] = useState(true);
@@ -222,9 +222,9 @@ export function SideNav({ signedInAs }: { signedInAs?: string }) {
         </button>
         <Link href="/admin" className="brand">
           <span className="brand-mark">
-            A<i>.</i>
+            P<i>.</i>
           </span>
-          <span className="title">Ali Agent</span>
+          <span className="title">ProxyTech</span>
         </Link>
         {current && <span className="crumb">{current.label}</span>}
       </div>
@@ -233,10 +233,10 @@ export function SideNav({ signedInAs }: { signedInAs?: string }) {
       <aside className={"admin-side" + (open ? " open" : "")} aria-label="Admin navigation">
         <Link href="/admin" className="side-brand">
           <span className="brand-mark">
-            A<i>.</i>
+            P<i>.</i>
           </span>
           <span className="brand-name">
-            Ali Agent
+            ProxyTech
             <span>Ops desk</span>
           </span>
         </Link>
@@ -292,14 +292,16 @@ export function SideNav({ signedInAs }: { signedInAs?: string }) {
               Storefront ↗
             </Link>
           </div>
-          {signedInAs && signedInAs !== "dev@localhost" && (
+          {!user.dev && (
             <form action={signOut} className="side-row">
               <button type="submit" className="btn">
                 Sign out
               </button>
             </form>
           )}
-          {signedInAs && <div className="side-user">{signedInAs}</div>}
+          <div className="side-user" title={user.dev ? undefined : user.email}>
+            Signed in as <b>{user.name}</b>
+          </div>
         </div>
       </aside>
     </>

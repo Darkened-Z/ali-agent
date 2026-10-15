@@ -287,7 +287,7 @@ const DEFAULT_KB_CONTENT: Record<string, string> = {
   "K-07": "All distance orders include a 14-day cooling-off period from delivery. Handsets must be returned in like-new condition with original packaging.",
   "K-08": "Business accounts ordering 5+ SIMs get 10% off monthly line rental and a dedicated account manager.",
   "K-09": "Refurbished grades: Excellent (mint screen, 85%+ battery), Good (light micro-scratches, 80%+ battery), Fair (visible wear, 100% functional). All include 12-month warranty.",
-  "K-10": "Call center hours: Mon–Sat 10:00–22:00 BST. Outside hours, Ali Agent AI handles all chats and queues escalations for the morning shift.",
+  "K-10": "Call center hours: Mon–Sat 10:00–22:00 BST. Outside hours, ProxyTech AI handles all chats and queues escalations for the morning shift.",
 };
 
 function createSeedDb(demo: boolean): DatabaseSchema {
@@ -410,10 +410,10 @@ function createDemoDb(): DatabaseSchema {
     },
     settings: {
       general: {
-        businessName: "Ali Mobile UK",
-        contactEmail: "ali@aliagent.co.uk",
+        businessName: "ProxyTech",
+        contactEmail: "ali@proxytech.co.uk",
         timezone: "gb",
-        websiteDomain: "aliagent.co.uk",
+        websiteDomain: "proxytech.co.uk",
       },
       hours,
       whatsapp: {
@@ -421,7 +421,7 @@ function createDemoDb(): DatabaseSchema {
         phoneNumberId: "1058827740928374",
         accessToken: "EAAY_demo_token_ali_agent_uk",
         verifyToken: "ali_agent_verify_a3f9b2",
-        webhookUrl: "https://ali-agent.vercel.app/api/whatsapp/webhook",
+        webhookUrl: "https://proxytech.vercel.app/api/whatsapp/webhook",
       },
       escalation: {
         "Discount requested": true,
@@ -431,7 +431,7 @@ function createDemoDb(): DatabaseSchema {
         "Payment / bank details": true,
       },
       billing: {
-        plan: "Ali Agent · Pro plan",
+        plan: "ProxyTech · Pro plan",
         monthSpend: "£124.80",
         messagesCount: 1247,
         leadsCount: 48,
@@ -1110,7 +1110,7 @@ export async function generateCatalogueReply(
   if (/\b(hello|hi|hey|morning|afternoon|evening)\b/i.test(t)) {
     return {
       reply:
-        "Hi! I'm Ali Agent. Are you looking for a **pay-monthly phone** (iPhone 17, Galaxy S26, Pixel 10), a **SIM-only plan** from **£6 / month**, or help **porting your number**?",
+        "Hi! I'm ProxyTech. Are you looking for a **pay-monthly phone** (iPhone 17, Galaxy S26, Pixel 10), a **SIM-only plan** from **£6 / month**, or help **porting your number**?",
       escalated: false,
     };
   }

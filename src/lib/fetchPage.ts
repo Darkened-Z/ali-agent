@@ -60,7 +60,7 @@ export async function fetchPageText(raw: string): Promise<{ title: string; text:
     const res = await fetch(url, {
       redirect: "manual",
       signal: AbortSignal.timeout(10_000),
-      headers: { "user-agent": "AliAgentKB/1.0", accept: "text/html,text/plain" },
+      headers: { "user-agent": "ProxyTechKB/1.0", accept: "text/html,text/plain" },
     });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       url = await assertPublicUrl(new URL(res.headers.get("location")!, url).toString());

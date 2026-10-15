@@ -7,7 +7,7 @@
 
   var iframe = document.createElement("iframe");
   iframe.src = origin + "/widget/embed";
-  iframe.title = "Ali Agent Chat Widget";
+  iframe.title = "ProxyTech Chat Widget";
   iframe.style.cssText = [
     "position:fixed",
     "bottom:0",

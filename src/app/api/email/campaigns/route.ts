@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     sent: 0,
     cursor: "",
     createdAt: new Date().toISOString(),
-    createdBy: admin.email,
+    createdBy: admin.name,
   };
   db.campaigns.unshift(campaign);
   await writeDb(db);

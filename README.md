@@ -1,4 +1,4 @@
-# Ali Agent
+# ProxyTech
 
 AI-powered call-center automation for a UK mobile & SIM retailer.
 

@@ -21,10 +21,10 @@ export function TopBar() {
     <header className="topbar">
       <Link href="/" className="brand">
         <span className="brand-mark">
-          A<i>.</i>
+          P<i>.</i>
         </span>
         <span className="brand-name">
-          Ali Agent
+          ProxyTech
           <span>Customer tools</span>
         </span>
       </Link>

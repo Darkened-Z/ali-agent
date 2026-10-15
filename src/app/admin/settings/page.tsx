@@ -136,7 +136,7 @@ export default function SettingsPage() {
 
   const downloadInvoice = () => {
     const content = [
-      "ALI AGENT UK — MONTHLY INVOICE",
+      "PROXYTECH UK — MONTHLY INVOICE",
       "==============================",
       `Business: ${settings.general.businessName}`,
       `Contact:  ${settings.general.contactEmail}`,
@@ -149,7 +149,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "ali-agent-invoice.txt";
+    a.download = "proxytech-invoice.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -160,7 +160,7 @@ export default function SettingsPage() {
       ...s,
       billing: {
         ...s.billing,
-        plan: isPro ? "Ali Agent · Enterprise Unlimited" : "Ali Agent · Pro plan",
+        plan: isPro ? "ProxyTech · Enterprise Unlimited" : "ProxyTech · Pro plan",
         monthSpend: isPro ? "£299.00" : "£124.80",
       },
     }));

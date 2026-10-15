@@ -1,5 +1,5 @@
 -- =============================================================================
--- Ali Agent — Supabase schema
+-- ProxyTech — Supabase schema
 -- Run once in the Supabase SQL Editor. The app seeds config + KB on first request.
 --
 -- Every list (conversations, leads, orders, kbArticles, broadcasts, team,

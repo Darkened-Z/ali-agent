@@ -2,7 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { readDb } from "./store";
 
-export type Admin = { email: string };
+/** `name` comes from the Team page; the owner (and local dev) default to Ali. */
+export type Admin = { email: string; name: string; dev?: boolean };
+
+const DEFAULT_NAME = "Ali";
 
 function authKeys() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -28,14 +31,18 @@ export async function createAuthClient() {
   });
 }
 
-export async function isAllowlisted(email: string): Promise<boolean> {
+async function lookupStaff(email: string): Promise<{ allowed: boolean; name: string }> {
+  const db = await readDb({ lists: ["team"] });
+  const member = db.team.find(m => m.email.toLowerCase() === email);
   const bootstrap = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map(e => e.trim().toLowerCase())
     .filter(Boolean);
-  if (bootstrap.includes(email)) return true;
-  const db = await readDb({ lists: ["team"] });
-  return db.team.some(m => m.email.toLowerCase() === email);
+  return { allowed: !!member || bootstrap.includes(email), name: member?.name || DEFAULT_NAME };
+}
+
+export async function isAllowlisted(email: string): Promise<boolean> {
+  return (await lookupStaff(email)).allowed;
 }
 
 /**
@@ -44,13 +51,14 @@ export async function isAllowlisted(email: string): Promise<boolean> {
  */
 export async function getAdmin(): Promise<Admin | null> {
   if (!authKeys()) {
-    return process.env.NODE_ENV === "production" ? null : { email: "dev@localhost" };
+    return process.env.NODE_ENV === "production" ? null : { email: "dev@localhost", name: DEFAULT_NAME, dev: true };
   }
   const supabase = await createAuthClient();
   const { data } = await supabase.auth.getUser();
   const email = data.user?.email?.toLowerCase();
-  if (!email || !(await isAllowlisted(email))) return null;
-  return { email };
+  if (!email) return null;
+  const staff = await lookupStaff(email);
+  return staff.allowed ? { email, name: staff.name } : null;
 }
 
 export async function requireAdmin(): Promise<Response | null> {

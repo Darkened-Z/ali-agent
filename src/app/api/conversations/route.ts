@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
     const timeStr = new Date().toTimeString().slice(0, 5);
     const member = db.team.find(t => t.email.toLowerCase() === admin.email);
-    const senderName = member?.name.split(" ")[0] || admin.email.split("@")[0];
+    const senderName = admin.name.split(" ")[0];
     let deliveryError: string | undefined;
 
     if (body.isNote) {
@@ -137,7 +137,7 @@ export async function PATCH(req: Request) {
       conv.timeline = conv.timeline || [];
       const statusLabels: Record<ConvStatus, string> = {
         human: "Human agent took over thread",
-        bot: "Handed back to Ali Agent bot",
+        bot: "Handed back to ProxyTech bot",
         waiting: "Paused bot — queued for human",
         closed: "Marked conversation as resolved ✓",
       };

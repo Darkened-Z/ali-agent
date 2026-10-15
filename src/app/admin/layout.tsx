@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
 
   return (
     <div className="admin-shell">
-      <SideNav signedInAs={admin.email} />
+      <SideNav user={{ name: admin.name, email: admin.email, dev: !!admin.dev }} />
       <main className="admin-main">{children}</main>
     </div>
   );
