@@ -201,35 +201,31 @@ export default function TeamPage() {
           <tbody>
             {members.map(t => (
               <tr key={t.id}>
-                <td style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{
-                    width: 24, height: 24, background: "var(--ink)", color: "var(--paper)",
-                    display: "grid", placeItems: "center",
-                    fontFamily: "var(--font-jbmono)", fontWeight: 700, fontSize: 10,
-                  }}>
-                    {t.name.charAt(0)}
+                <td>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 600 }}>
+                    <span style={{
+                      width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                      background: "var(--paper-2)", color: "var(--ink-2)",
+                      display: "grid", placeItems: "center", fontWeight: 700, fontSize: 11,
+                    }}>
+                      {t.name.split(" ").map(w => w[0]).slice(0, 2).join("")}
+                    </span>
+                    {t.name}
                   </div>
-                  {t.name}
                 </td>
                 <td>
                   {editingId === t.id ? (
                     <select
                       value={t.role}
                       onChange={e => handleUpdateRole(t.id, e.target.value)}
-                      style={{
-                        padding: "4px 8px",
-                        border: "1px solid var(--ink)",
-                        background: "var(--paper)",
-                        color: "var(--ink)",
-                        fontSize: 12,
-                      }}
+                      className="status-select"
                     >
                       {ROLES.map(r => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
                   ) : (
-                    <span className="badge">{t.role.toUpperCase()}</span>
+                    <span className="badge">{t.role}</span>
                   )}
                 </td>
                 <td><span className="mono" style={{ fontSize: 12 }}>{t.email}</span></td>
@@ -238,7 +234,7 @@ export default function TeamPage() {
                 <td style={{ textAlign: "right" }}>
                   {editingId === t.id ? (
                     <div style={{ display: "inline-flex", gap: 6 }}>
-                      <button className="btn ghost" onClick={() => handleRemove(t.id)} style={{ color: "var(--signal)" }}>
+                      <button className="btn danger" onClick={() => handleRemove(t.id)}>
                         Remove
                       </button>
                       <button className="btn" onClick={() => setEditingId(null)}>

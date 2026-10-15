@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { readDb, writeDb } from "@/lib/store";
+import { newId, readDb, writeDb } from "@/lib/store";
+import { requireAdmin } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -17,16 +18,19 @@ const PatchMemberSchema = z.object({
 });
 
 export async function GET() {
-  const db = readDb();
+  const denied = await requireAdmin();
+  if (denied) return denied;
+  const db = await readDb();
   return Response.json({ team: db.team });
 }
 
 export async function POST(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = InviteMemberSchema.parse(await req.json());
-    const db = readDb();
-    const nextNum = db.team.length + 1;
-    const id = `T-${String(nextNum).padStart(2, "0")}`;
+    const db = await readDb();
+    const id = newId("T");
 
     const member = {
       id,
@@ -38,7 +42,7 @@ export async function POST(req: Request) {
     };
 
     db.team.push(member);
-    writeDb(db);
+    await writeDb(db);
     return Response.json({ member, team: db.team }, { status: 201 });
   } catch (e) {
     return Response.json(
@@ -49,9 +53,11 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = PatchMemberSchema.parse(await req.json());
-    const db = readDb();
+    const db = await readDb();
     const member = db.team.find(t => t.id === body.id);
     if (!member) {
       return Response.json({ error: "Member not found" }, { status: 404 });
@@ -59,7 +65,7 @@ export async function PATCH(req: Request) {
     if (body.name) member.name = body.name.trim();
     if (body.role) member.role = body.role.trim();
     if (body.email) member.email = body.email.trim().toLowerCase();
-    writeDb(db);
+    await writeDb(db);
     return Response.json({ member, team: db.team });
   } catch (e) {
     return Response.json(
@@ -70,13 +76,15 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) {
     return Response.json({ error: "Missing id" }, { status: 400 });
   }
-  const db = readDb();
+  const db = await readDb();
   db.team = db.team.filter(t => t.id !== id);
-  writeDb(db);
+  await writeDb(db);
   return Response.json({ team: db.team });
 }

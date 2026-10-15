@@ -1,6 +1,9 @@
+import { after } from "next/server";
 import { z } from "zod";
+import { alertNewLead } from "@/lib/notify";
+import { rateLimit } from "@/lib/rateLimit";
 import { addLeadToDb, readDb, writeDb, type LeadStatus } from "@/lib/store";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -23,31 +26,20 @@ const PatchLeadSchema = z.object({
 });
 
 export async function GET() {
-  const db = readDb();
+  const denied = await requireAdmin();
+  if (denied) return denied;
+  const db = await readDb();
   return Response.json({ leads: db.leads });
 }
 
 export async function POST(req: Request) {
+  const limited = await rateLimit(req, "lead", 5, 600);
+  if (limited) return limited;
   try {
     const body = CreateLeadSchema.parse(await req.json());
-    const lead = addLeadToDb(body);
-
-    const sb = getSupabaseAdmin();
-    if (sb) {
-      await sb.from("leads").upsert({
-        id: lead.id,
-        name: lead.name,
-        phone: lead.phone,
-        city: lead.city,
-        interest: lead.interest,
-        network: lead.network ?? "any",
-        best_time: lead.bestTime ?? "any",
-        source: lead.source,
-        score: lead.score,
-        status: lead.status,
-        updated: lead.updated,
-      });
-    }
+    const lead = await addLeadToDb(body);
+    const { settings } = await readDb({ lists: [] });
+    after(() => alertNewLead(settings, lead));
 
     return Response.json({ lead }, { status: 201 });
   } catch (e) {
@@ -59,9 +51,11 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = PatchLeadSchema.parse(await req.json());
-    const db = readDb();
+    const db = await readDb();
     const target = db.leads.find(l => l.id === body.id);
     if (!target) {
       return Response.json({ error: "Lead not found" }, { status: 404 });
@@ -70,20 +64,7 @@ export async function PATCH(req: Request) {
     if (body.score !== undefined) target.score = body.score;
     if (body.interest) target.interest = body.interest;
     target.updated = new Date().toTimeString().slice(0, 5);
-    writeDb(db);
-
-    const sb = getSupabaseAdmin();
-    if (sb) {
-      await sb
-        .from("leads")
-        .update({
-          status: target.status,
-          score: target.score,
-          interest: target.interest,
-          updated: target.updated,
-        })
-        .eq("id", target.id);
-    }
+    await writeDb(db);
 
     return Response.json({ lead: target });
   } catch (e) {
@@ -95,12 +76,14 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const clearAll = searchParams.get("all") === "true";
 
-    const db = readDb();
+    const db = await readDb();
     if (clearAll) {
       db.leads = [];
     } else if (id) {
@@ -108,16 +91,7 @@ export async function DELETE(req: Request) {
     } else {
       return Response.json({ error: "Missing id or all parameter" }, { status: 400 });
     }
-    writeDb(db);
-
-    const sb = getSupabaseAdmin();
-    if (sb) {
-      if (clearAll) {
-        await sb.from("leads").delete().neq("id", "");
-      } else if (id) {
-        await sb.from("leads").delete().eq("id", id);
-      }
-    }
+    await writeDb(db);
 
     return Response.json({ success: true, count: db.leads.length });
   } catch (e) {

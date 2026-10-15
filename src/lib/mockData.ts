@@ -17,6 +17,7 @@ export type Conversation = {
   score?: number;
   source?: string;
   firstSeen?: string;
+  updatedAt?: string;
   tags?: string[];
   timeline?: { time: string; who: string; what: string }[];
   messages?: {
@@ -24,6 +25,7 @@ export type Conversation = {
     text: string;
     time: string;
     meta?: string;
+    failed?: string;
     priceCard?: { label: string; price: string; info: string; cta: string };
   }[];
 };

@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "./supabase";
+import { hoursStatus, localDate } from "./hours";
 import {
   conversations as initialConversations,
   leads as initialLeads,
@@ -41,6 +44,7 @@ export type KBArticleRecord = {
   title: string;
   category: string;
   content?: string;
+  sourceUrl?: string;
   updated: string;
   uses: number;
 };
@@ -84,6 +88,7 @@ export type BotConfig = {
     complaint: boolean;
     human: boolean;
     longConv: boolean;
+    payment?: boolean;
   };
   hash: string;
   updatedAt: string;
@@ -164,6 +169,42 @@ export type OrderRecord = {
   trackingNumber: string;
 };
 
+export type ContactStatus = "subscribed" | "unsubscribed" | "bounced" | "complained";
+
+export type ContactRecord = {
+  id: string;
+  email: string;
+  name: string;
+  lists: string[];
+  status: ContactStatus;
+  consent: string;
+  lastEngagedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CampaignStatus = "sending" | "paused" | "sent";
+
+export type CampaignRecord = {
+  id: string;
+  subject: string;
+  body: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  list: string;
+  status: CampaignStatus;
+  total: number;
+  sent: number;
+  cursor: string;
+  dailyLimit?: number;
+  sentToday?: { date: string; count: number };
+  capReachedOn?: string;
+  createdAt: string;
+  createdBy: string;
+  finishedAt?: string;
+  lastError?: string;
+};
+
 export type DatabaseSchema = {
   conversations: (Conversation & { assignee?: string })[];
   leads: LeadRecord[];
@@ -175,13 +216,48 @@ export type DatabaseSchema = {
   settings: AppSettings;
   customPlans: CustomPlanItem[];
   customDevices: CustomDeviceItem[];
+  contacts: ContactRecord[];
+  campaigns: CampaignRecord[];
   lastCatalogueSync: string;
 };
 
-const DATA_DIR = process.env.VERCEL
-  ? path.join("/tmp", ".data")
-  : path.join(process.cwd(), ".data");
+const LIST_KEYS = [
+  "conversations",
+  "leads",
+  "orders",
+  "kbArticles",
+  "broadcasts",
+  "team",
+  "customPlans",
+  "customDevices",
+  "contacts",
+  "campaigns",
+] as const;
+const STATE_KEYS = ["botConfig", "settings", "lastCatalogueSync"] as const;
+
+export type ListKey = (typeof LIST_KEYS)[number];
+type StateKey = (typeof STATE_KEYS)[number];
+
+export type ReadOptions = {
+  lists?: ListKey[];
+  ids?: Partial<Record<ListKey, string[]>>;
+};
+
+type Snapshot = {
+  rows: Partial<Record<ListKey, Map<string, { json: string; sort: number }>>>;
+  state: Partial<Record<StateKey, string>>;
+};
+
+// Contacts can run to tens of thousands of rows, so they're only loaded when asked for by name.
+const DEFAULT_LISTS = LIST_KEYS.filter(k => k !== "contacts");
+
+const snapshots = new WeakMap<DatabaseSchema, Snapshot>();
+
+const DATA_DIR = path.join(process.cwd(), ".data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
+const PAGE_SIZE = 1000;
+const ID_CHUNK = 150;
+const WRITE_CHUNK = 500;
 
 function nowHHMM(): string {
   const d = new Date();
@@ -197,6 +273,10 @@ function computeHash(text: string): string {
   return crypto.createHash("sha1").update(text).digest("hex").slice(0, 6);
 }
 
+export function newId(prefix: string): string {
+  return `${prefix}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+}
+
 const DEFAULT_KB_CONTENT: Record<string, string> = {
   "K-01": "Three 5G covers 65%+ of the UK outdoor population. Customers can check postcode coverage at three.co.uk/discover/network/coverage-checker.",
   "K-02": "iPhone 17 starts at £31.95/mo (£345 upfront) on Vodafone or £42/mo (£25 upfront) on Three. iPhone 17 Pro from £54/mo on Three; iPhone 17 Pro Max from £58/mo on Vodafone.",
@@ -210,7 +290,31 @@ const DEFAULT_KB_CONTENT: Record<string, string> = {
   "K-10": "Call center hours: Mon–Sat 10:00–22:00 BST. Outside hours, Ali Agent AI handles all chats and queues escalations for the morning shift.",
 };
 
-function createSeedDb(): DatabaseSchema {
+function createSeedDb(demo: boolean): DatabaseSchema {
+  const db = createDemoDb();
+  if (demo) return db;
+  return {
+    ...db,
+    conversations: [],
+    leads: [],
+    orders: [],
+    broadcasts: [],
+    team: [],
+    settings: {
+      ...db.settings,
+      whatsapp: {
+        ...db.settings.whatsapp,
+        phoneNumberId: "",
+        accessToken: "",
+        verifyToken: "",
+        webhookUrl: "",
+      },
+      billing: { ...db.settings.billing, monthSpend: "£0.00", messagesCount: 0, leadsCount: 0 },
+    },
+  };
+}
+
+function createDemoDb(): DatabaseSchema {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const hours: AppSettings["hours"] = {};
   for (const d of days) {
@@ -336,63 +440,246 @@ function createSeedDb(): DatabaseSchema {
     },
     customPlans: [],
     customDevices: [],
+    contacts: [],
+    campaigns: [],
     lastCatalogueSync: "Aug 24, 14:00",
   };
 }
 
-export function readDb(): DatabaseSchema {
-  try {
-    if (!fs.existsSync(DB_FILE)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-      const seed = createSeedDb();
-      fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2), "utf8");
-      return seed;
-    }
-    const raw = fs.readFileSync(DB_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<DatabaseSchema>;
-    const seed = createSeedDb();
-    return {
-      ...seed,
-      ...parsed,
-      orders: Array.isArray(parsed.orders) ? parsed.orders : (seed.orders ?? []),
-      botConfig: { ...seed.botConfig, ...(parsed.botConfig ?? {}) },
-      settings: { ...seed.settings, ...(parsed.settings ?? {}) },
-    };
-  } catch {
-    return createSeedDb();
+type Identified = { id: string };
+type RecordRow = { collection: ListKey; id: string; data: Identified; sort: number };
+
+// Local dev falls back to a JSON file; production must never silently write to an ephemeral disk.
+function storage(): SupabaseClient | null {
+  const sb = getSupabaseAdmin();
+  if (!sb && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Supabase is not configured: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+    );
   }
+  return sb;
 }
 
-export function writeDb(db: DatabaseSchema): DatabaseSchema {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
-  } catch {
-    // Ignore read-only filesystem errors in serverless environments
-  }
-  return db;
-}
-
-export function getDashboardStats(db = readDb()) {
-  const activeNow = db.conversations.filter(c => c.status === "bot" || c.status === "human").length;
-  const queuedToday = db.conversations.filter(c => c.status === "waiting").length + db.leads.filter(l => l.status === "hot").length;
-  const handledToday = 40 + db.conversations.length;
-  const escalatedToday = db.conversations.filter(c => c.status === "human" || c.status === "waiting").length;
-  const wonLeads = db.leads.filter(l => l.status === "won").length;
-  const wonConvs = db.conversations.filter(c => c.status === "closed").length;
-  const wonToday = Math.max(8, wonLeads + wonConvs + 6);
-  const revNumber = 12845 + (wonToday - 8) * 420;
+function mergeWithDefaults(parsed: Partial<DatabaseSchema>, seed: DatabaseSchema): DatabaseSchema {
   return {
-    activeNow,
-    queuedToday,
-    handledToday,
-    escalatedToday,
-    wonToday,
-    revenueToday: `£${revNumber.toLocaleString("en-GB")}`,
+    ...seed,
+    ...parsed,
+    botConfig: { ...seed.botConfig, ...(parsed.botConfig ?? {}) },
+    settings: { ...seed.settings, ...(parsed.settings ?? {}) },
   };
 }
 
-export function addLeadToDb(input: {
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+function listOf(db: DatabaseSchema, key: ListKey): Identified[] {
+  return db[key] as unknown as Identified[];
+}
+
+function readFileDb(): DatabaseSchema {
+  if (!fs.existsSync(DB_FILE)) {
+    const seed = createSeedDb(true);
+    writeFileDb(seed);
+    return seed;
+  }
+  const parsed = JSON.parse(fs.readFileSync(DB_FILE, "utf8")) as Partial<DatabaseSchema>;
+  return mergeWithDefaults(parsed, createSeedDb(true));
+}
+
+function writeFileDb(db: DatabaseSchema) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
+}
+
+async function fetchRecords(
+  sb: SupabaseClient,
+  collection: ListKey,
+  ids?: string[]
+): Promise<RecordRow[]> {
+  if (ids && ids.length === 0) return [];
+  if (ids && ids.length > ID_CHUNK) {
+    const parts = await Promise.all(
+      chunk(ids, ID_CHUNK).map(c => fetchRecords(sb, collection, c))
+    );
+    return parts.flat().sort((a, b) => b.sort - a.sort || a.id.localeCompare(b.id));
+  }
+  const rows: RecordRow[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    let q = sb.from("records").select("collection,id,data,sort").eq("collection", collection);
+    if (ids) q = q.in("id", ids);
+    const { data, error } = await q
+      .order("sort", { ascending: false })
+      .order("id")
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    rows.push(...(data as RecordRow[]));
+    if (data.length < PAGE_SIZE) return rows;
+  }
+}
+
+async function seedSupabase(sb: SupabaseClient) {
+  const seed = createSeedDb(false);
+  const rows = LIST_KEYS.flatMap(collection =>
+    listOf(seed, collection).map((item, i, arr) => ({
+      collection,
+      id: item.id,
+      data: item,
+      sort: arr.length - i,
+    }))
+  );
+  if (rows.length) {
+    const { error } = await sb
+      .from("records")
+      .upsert(rows, { onConflict: "collection,id", ignoreDuplicates: true });
+    if (error) throw error;
+  }
+  const { error } = await sb
+    .from("app_state")
+    .upsert(STATE_KEYS.map(key => ({ key, data: seed[key] })), {
+      onConflict: "key",
+      ignoreDuplicates: true,
+    });
+  if (error) throw error;
+}
+
+/**
+ * Lists not named in `opts.lists` come back empty and are never written by writeDb,
+ * so hot paths (chat, webhooks) can skip loading the whole inbox.
+ */
+export async function readDb(opts: ReadOptions = {}): Promise<DatabaseSchema> {
+  const sb = storage();
+  if (!sb) return readFileDb();
+
+  const lists = opts.lists ?? DEFAULT_LISTS;
+  const [stateRes, listRows] = await Promise.all([
+    sb.from("app_state").select("key,data"),
+    Promise.all(lists.map(key => fetchRecords(sb, key, opts.ids?.[key]))),
+  ]);
+  if (stateRes.error) throw stateRes.error;
+  if (stateRes.data.length === 0) {
+    await seedSupabase(sb);
+    return readDb(opts);
+  }
+
+  const parsed: Record<string, unknown> = {};
+  for (const key of LIST_KEYS) parsed[key] = [];
+  for (const row of stateRes.data as { key: string; data: unknown }[]) {
+    if ((STATE_KEYS as readonly string[]).includes(row.key)) parsed[row.key] = row.data;
+  }
+
+  const snap: Snapshot = { rows: {}, state: {} };
+  lists.forEach((key, i) => {
+    parsed[key] = listRows[i].map(r => r.data);
+    snap.rows[key] = new Map(
+      listRows[i].map(r => [r.id, { json: JSON.stringify(r.data), sort: r.sort }])
+    );
+  });
+
+  const db = mergeWithDefaults(parsed as Partial<DatabaseSchema>, createSeedDb(false));
+  for (const key of STATE_KEYS) snap.state[key] = JSON.stringify(db[key]);
+  snapshots.set(db, snap);
+  return db;
+}
+
+/** Persists only rows that changed since readDb, so concurrent requests don't clobber each other's records. */
+export async function writeDb(db: DatabaseSchema): Promise<DatabaseSchema> {
+  const sb = storage();
+  if (!sb) {
+    writeFileDb(db);
+    return db;
+  }
+
+  const snap = snapshots.get(db);
+  if (!snap) throw new Error("writeDb() needs a db object returned by readDb()");
+
+  const upserts: RecordRow[] = [];
+  const deletes: { collection: ListKey; ids: string[] }[] = [];
+  const nextRows: Snapshot["rows"] = {};
+
+  for (const key of LIST_KEYS) {
+    const before = snap.rows[key];
+    if (!before) continue;
+
+    const seen = new Set<string>();
+    const items = listOf(db, key).filter(item => !seen.has(item.id) && seen.add(item.id));
+    const now = Date.now();
+    const frontCount = items.findIndex(item => before.has(item.id));
+    const leading = frontCount === -1 ? items.length : frontCount;
+    const after = new Map<string, { json: string; sort: number }>();
+    let prevSort = now + leading;
+    let stepsSincePrev = 0;
+
+    items.forEach((item, i) => {
+      const prev = before.get(item.id);
+      let sort: number;
+      if (prev) {
+        sort = prev.sort;
+        prevSort = sort;
+        stepsSincePrev = 0;
+      } else if (i < leading) {
+        sort = now + (leading - i);
+      } else {
+        stepsSincePrev += 1;
+        sort = prevSort - stepsSincePrev / 1000;
+      }
+      const json = JSON.stringify(item);
+      after.set(item.id, { json, sort });
+      if (!prev || prev.json !== json) {
+        upserts.push({ collection: key, id: item.id, data: item, sort });
+      }
+    });
+
+    const removed = [...before.keys()].filter(id => !after.has(id));
+    if (removed.length) deletes.push({ collection: key, ids: removed });
+    nextRows[key] = after;
+  }
+
+  const stateUpserts = STATE_KEYS.filter(key => snap.state[key] !== JSON.stringify(db[key])).map(
+    key => ({ key, data: db[key], updated_at: new Date().toISOString() })
+  );
+
+  const results = await Promise.all([
+    ...chunk(upserts, WRITE_CHUNK).map(rows =>
+      sb
+        .from("records")
+        .upsert(
+          rows.map(r => ({ ...r, updated_at: new Date().toISOString() })),
+          { onConflict: "collection,id" }
+        )
+    ),
+    stateUpserts.length ? sb.from("app_state").upsert(stateUpserts, { onConflict: "key" }) : null,
+    ...deletes.flatMap(d =>
+      chunk(d.ids, ID_CHUNK).map(ids =>
+        sb.from("records").delete().eq("collection", d.collection).in("id", ids)
+      )
+    ),
+  ]);
+  for (const res of results) if (res?.error) throw res.error;
+
+  snapshots.set(db, {
+    rows: { ...snap.rows, ...nextRows },
+    state: Object.fromEntries(STATE_KEYS.map(key => [key, JSON.stringify(db[key])])),
+  });
+  return db;
+}
+
+export function getDashboardStats(db: DatabaseSchema) {
+  const today = localDate(db.settings);
+  const touchedToday = db.conversations.filter(
+    c => c.updatedAt && localDate(db.settings, new Date(c.updatedAt)) === today
+  );
+  return {
+    activeNow: db.conversations.filter(c => c.status === "bot" || c.status === "human").length,
+    queuedToday: db.conversations.filter(c => c.status === "waiting").length,
+    handledToday: touchedToday.length,
+    escalatedToday: touchedToday.filter(c => c.status === "human" || c.status === "waiting").length,
+  };
+}
+
+export async function addLeadToDb(input: {
   name: string;
   phone: string;
   city: string;
@@ -401,10 +688,12 @@ export function addLeadToDb(input: {
   network?: string;
   time?: string;
   source?: string;
-}): LeadRecord {
-  const db = readDb();
-  const nextNum = 1043 + db.leads.length;
-  const id = `L-${nextNum}`;
+}): Promise<LeadRecord> {
+  const db = await readDb({
+    lists: ["leads", "conversations"],
+    ids: { leads: [], conversations: [] },
+  });
+  const id = newId("L");
 
   const needMap: Record<string, string> = {
     sim: "SIM-only plan",
@@ -429,6 +718,8 @@ export function addLeadToDb(input: {
 
   const status: LeadStatus = score >= 75 ? "hot" : score >= 45 ? "warm" : "cold";
   const timeStr = nowHHMM();
+  const hours = hoursStatus(db.settings);
+  const callbackWindow = hours.open ? "within 30 minutes" : hours.nextOpen ?? "as soon as we reopen";
 
   const newLead: LeadRecord = {
     id,
@@ -447,7 +738,7 @@ export function addLeadToDb(input: {
   db.leads.unshift(newLead);
 
   // Also create a waiting conversation in the inbox so call-center staff see the callback request immediately
-  const convId = `c-${Date.now()}`;
+  const convId = newId("c");
   db.conversations.unshift({
     id: convId,
     name: newLead.name,
@@ -458,6 +749,7 @@ export function addLeadToDb(input: {
     time: timeStr,
     preview: `Callback requested: ${interest} (${input.time || "any time"})`,
     isNew: true,
+    updatedAt: new Date().toISOString(),
     score: newLead.score,
     source: newLead.source,
     firstSeen: `${shortDate()}, ${timeStr}`,
@@ -474,7 +766,7 @@ export function addLeadToDb(input: {
       },
       {
         from: "bot",
-        text: `Thanks ${newLead.name.split(" ")[0]}! Reference ${id} logged — one of our advisors will call ${newLead.phone} within 30 minutes.`,
+        text: `Thanks ${newLead.name.split(" ")[0]}! Reference ${id} logged — one of our advisors will call ${newLead.phone} ${callbackWindow}.`,
         time: timeStr,
         meta: "AUTO-ACK",
       },
@@ -482,11 +774,11 @@ export function addLeadToDb(input: {
   });
 
   db.settings.billing.leadsCount += 1;
-  writeDb(db);
+  await writeDb(db);
   return newLead;
 }
 
-export function addOrderToDb(input: {
+export async function addOrderToDb(input: {
   customerName: string;
   email: string;
   phone: string;
@@ -496,11 +788,12 @@ export function addOrderToDb(input: {
   pacCode?: string;
   paymentMethod?: string;
   items: { id: string; name: string; price: string; upfront?: string }[];
-}): OrderRecord {
-  const db = readDb();
-  const randNum = Math.floor(100000 + Math.random() * 900000);
-  const orderId = `3UK-${randNum}`;
-  const trackingNumber = `DPD-GB-${Math.floor(100000 + Math.random() * 900000)}`;
+}): Promise<OrderRecord> {
+  const db = await readDb({
+    lists: ["orders", "leads", "conversations"],
+    ids: { orders: [], leads: [], conversations: [] },
+  });
+  const orderId = newId("3UK");
   const timeStr = nowHHMM();
   const dateStr = shortDate();
 
@@ -530,7 +823,7 @@ export function addOrderToDb(input: {
     monthlyTotal: `£${monthlySum.toFixed(2)}/mo`,
     upfrontTotal: `£${upfrontSum.toFixed(2)}`,
     status: "confirmed",
-    trackingNumber,
+    trackingNumber: "",
   };
 
   db.orders = db.orders || [];
@@ -538,9 +831,8 @@ export function addOrderToDb(input: {
 
   // Also create a "won" lead in CRM
   const itemsSummary = input.items.map(i => i.name).join(" + ") || "Phone / SIM Order";
-  const leadNum = 1043 + db.leads.length;
   db.leads.unshift({
-    id: `L-${leadNum}`,
+    id: newId("L"),
     name: order.customerName,
     phone: order.phone,
     city: `${order.city} (${order.postcode})`,
@@ -561,15 +853,15 @@ export function addOrderToDb(input: {
     channel: "web",
     status: "closed",
     time: timeStr,
-    preview: `ORDER CONFIRMED: ${orderId} · ${itemsSummary} · DPD: ${trackingNumber}`,
+    preview: `Order ${orderId} · ${itemsSummary}`,
     isNew: true,
+    updatedAt: new Date().toISOString(),
     score: 100,
     source: "Three Storefront Checkout",
     firstSeen: `${dateStr}, ${timeStr}`,
     tags: ["ORDER CONFIRMED", order.postcode, input.pacCode ? `PAC: ${input.pacCode}` : "NEW NUMBER"],
     timeline: [
       { time: timeStr, who: "Customer", what: `Placed order ${orderId}` },
-      { time: timeStr, who: "System", what: `Assigned DPD Tracking: ${trackingNumber}` },
     ],
     messages: [
       {
@@ -580,7 +872,7 @@ export function addOrderToDb(input: {
       },
       {
         from: "bot",
-        text: `Thank you for your order! Reference: ${orderId}. Track with DPD: ${trackingNumber}. Free delivery scheduled for next working day.`,
+        text: `Thank you for your order! Reference: ${orderId}. We'll send tracking details as soon as it's dispatched.`,
         time: timeStr,
         meta: "CONFIRMATION",
       },
@@ -588,20 +880,20 @@ export function addOrderToDb(input: {
   });
 
   db.settings.billing.leadsCount += 1;
-  writeDb(db);
+  await writeDb(db);
   return order;
 }
 
-export function generateCatalogueReply(
+export async function generateCatalogueReply(
   userText: string,
-  db = readDb(),
+  db: DatabaseSchema,
   messageCount = 1
-): {
+): Promise<{
   reply: string;
   escalated: boolean;
   escalationReason?: string;
   priceCard?: { label: string; price: string; info: string; cta: string };
-} {
+}> {
   const t = userText.trim();
   const { escalateOn } = db.botConfig;
 
@@ -612,7 +904,7 @@ export function generateCatalogueReply(
   ) {
     return {
       reply:
-        "Handing you over to a human advisor right now — Sam or Aisha will pick this up in under a minute. Anything else you'd like me to note for them?",
+        "I'm passing you to one of our advisors now — they'll reply right here. Anything you'd like me to note for them?",
       escalated: true,
       escalationReason: "Explicit human request",
     };
@@ -642,6 +934,18 @@ export function generateCatalogueReply(
     };
   }
 
+  if (
+    escalateOn.payment !== false &&
+    /\b(card number|cvv|cvc|sort code|account number|bank details|iban|pin number)\b/i.test(t)
+  ) {
+    return {
+      reply:
+        "Please don't share card or bank details in chat. I'm passing you to an advisor who'll take you through secure payment.",
+      escalated: true,
+      escalationReason: "Payment / bank details",
+    };
+  }
+
   if (escalateOn.longConv && messageCount >= 10) {
     return {
       reply:
@@ -655,7 +959,7 @@ export function generateCatalogueReply(
   if (/\b(port|pac|mnp|keep my number|switch network|65075)\b/i.test(t)) {
     const kb = db.kbArticles.find(k => k.id === "K-03");
     if (kb) kb.uses += 1;
-    writeDb(db);
+    await writeDb(db);
     return {
       reply:
         "Porting takes **1 working day** once we have your PAC. Text **PAC to 65075** (free on EE, O2, Vodafone & Three) — reply here with the code and we'll schedule the switch.",
@@ -666,7 +970,7 @@ export function generateCatalogueReply(
   if (/\b(klarna|paypal|pay in 3|split|upfront|instalment|installment)\b/i.test(t)) {
     const kb = db.kbArticles.find(k => k.id === "K-04");
     if (kb) kb.uses += 1;
-    writeDb(db);
+    await writeDb(db);
     return {
       reply:
         "Yes — you can split any upfront cost into three interest-free payments with **Klarna Pay in 3** or **PayPal Pay in 3** at checkout.",
@@ -677,7 +981,7 @@ export function generateCatalogueReply(
   if (/\b(delivery|shipping|dispatch|dpd|royal mail|next day|track|order #)\b/i.test(t)) {
     const kb = db.kbArticles.find(k => k.id === "K-05");
     if (kb) kb.uses += 1;
-    writeDb(db);
+    await writeDb(db);
     return {
       reply:
         "Order before **5pm Mon–Fri** for free next-working-day delivery via **DPD** or **Royal Mail Tracked 24**, complete with a 1-hour SMS time slot.",
@@ -688,7 +992,7 @@ export function generateCatalogueReply(
   if (/\b(return|cooling off|14 day|warranty)\b/i.test(t)) {
     const kb = db.kbArticles.find(k => k.id === "K-07");
     if (kb) kb.uses += 1;
-    writeDb(db);
+    await writeDb(db);
     return {
       reply:
         "Every order comes with a **14-day cooling-off period** for returns plus a full manufacturer warranty (24 months on new devices, 12 months on refurbished).",
@@ -766,7 +1070,7 @@ export function generateCatalogueReply(
     const kb = db.kbArticles.find(k => k.id === "K-02");
     if (kb) {
       kb.uses += 1;
-      writeDb(db);
+      await writeDb(db);
     }
 
     return {
@@ -795,7 +1099,7 @@ export function generateCatalogueReply(
   );
   if (customKb && customKb.content) {
     customKb.uses += 1;
-    writeDb(db);
+    await writeDb(db);
     return {
       reply: customKb.content,
       escalated: false,
@@ -818,7 +1122,7 @@ export function generateCatalogueReply(
   };
 }
 
-export function recordChatExchange(params: {
+export async function recordChatExchange(params: {
   sessionId: string;
   channel: "web" | "wa";
   userName?: string;
@@ -830,8 +1134,11 @@ export function recordChatExchange(params: {
   escalated?: boolean;
   escalationReason?: string;
   priceCard?: { label: string; price: string; info: string; cta: string };
-}): Conversation {
-  const db = readDb();
+}): Promise<Conversation> {
+  const db = await readDb({
+    lists: ["conversations"],
+    ids: { conversations: [params.sessionId] },
+  });
   const timeStr = nowHHMM();
   let conv = db.conversations.find(c => c.id === params.sessionId);
 
@@ -846,7 +1153,7 @@ export function recordChatExchange(params: {
       phone: params.phone || "+44 7700 900" + Math.floor(100 + Math.random() * 899),
       city: params.city || "UK · Online",
       channel: params.channel,
-      status: params.escalated ? "human" : "bot",
+      status: params.escalated ? "waiting" : "bot",
       time: timeStr,
       preview: params.userText,
       isNew: true,
@@ -863,6 +1170,7 @@ export function recordChatExchange(params: {
   }
 
   conv.time = timeStr;
+  conv.updatedAt = new Date().toISOString();
   conv.preview = params.userText;
   conv.messages = conv.messages || [];
   conv.messages.push({
@@ -880,7 +1188,7 @@ export function recordChatExchange(params: {
   });
 
   if (params.escalated) {
-    conv.status = "human";
+    conv.status = "waiting";
     conv.timeline = conv.timeline || [];
     conv.timeline.unshift({
       time: timeStr,
@@ -897,7 +1205,50 @@ export function recordChatExchange(params: {
   }
 
   db.settings.billing.messagesCount += 2;
-  writeDb(db);
+  await writeDb(db);
+  return conv;
+}
+
+/** Logs an inbound customer message with no bot reply: the thread is with a human. */
+export async function recordCustomerMessage(params: {
+  sessionId: string;
+  channel: "web" | "wa";
+  userName?: string;
+  phone?: string;
+  city?: string;
+  text: string;
+}): Promise<Conversation> {
+  const db = await readDb({
+    lists: ["conversations"],
+    ids: { conversations: [params.sessionId] },
+  });
+  const timeStr = nowHHMM();
+  let conv = db.conversations.find(c => c.id === params.sessionId);
+  if (!conv) {
+    conv = {
+      id: params.sessionId,
+      name: params.userName || params.phone || "Customer",
+      phone: params.phone || "",
+      city: params.city || "UK",
+      channel: params.channel,
+      status: "waiting",
+      time: timeStr,
+      preview: params.text,
+      firstSeen: `${shortDate()}, ${timeStr}`,
+      source: params.channel === "wa" ? "Direct WhatsApp" : "Website widget",
+      tags: [],
+      timeline: [{ time: timeStr, who: "Visitor", what: "Started chat" }],
+      messages: [],
+    };
+    db.conversations.unshift(conv);
+  }
+  conv.messages = conv.messages || [];
+  conv.messages.push({ from: "client", text: params.text, time: timeStr, meta: params.channel.toUpperCase() });
+  conv.preview = params.text;
+  conv.time = timeStr;
+  conv.updatedAt = new Date().toISOString();
+  conv.isNew = true;
+  await writeDb(db);
   return conv;
 }
 

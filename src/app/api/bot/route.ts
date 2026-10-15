@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { readDb, writeDb, updatePromptHash } from "@/lib/store";
+import { getDashboardStats, readDb, writeDb, updatePromptHash } from "@/lib/store";
+import { requireAdmin } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -15,22 +16,27 @@ const UpdateBotSchema = z.object({
       complaint: z.boolean(),
       human: z.boolean(),
       longConv: z.boolean(),
+      payment: z.boolean().optional(),
     })
     .optional(),
 });
 
 export async function GET() {
-  const db = readDb();
+  const denied = await requireAdmin();
+  if (denied) return denied;
+  const db = await readDb();
   return Response.json({
     botConfig: db.botConfig,
-    repliesToday: 40 + db.conversations.length,
+    repliesToday: getDashboardStats(db).handledToday,
   });
 }
 
 export async function PUT(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = UpdateBotSchema.parse(await req.json());
-    const db = readDb();
+    const db = await readDb();
     const cfg = db.botConfig;
 
     if (body.botEnabled !== undefined) cfg.botEnabled = body.botEnabled;
@@ -65,7 +71,7 @@ export async function PUT(req: Request) {
       ];
     }
 
-    writeDb(db);
+    await writeDb(db);
     return Response.json({ botConfig: cfg });
   } catch (e) {
     return Response.json(

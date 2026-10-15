@@ -52,7 +52,7 @@ export default function BroadcastsPage() {
     loadBroadcasts();
   }, [loadBroadcasts]);
 
-  const submitBroadcast = async (action: "draft" | "schedule" | "send") => {
+  const submitBroadcast = async (action: "draft") => {
     if (!msg.trim() || busy) return;
     setBusy(true);
     try {
@@ -74,19 +74,6 @@ export default function BroadcastsPage() {
       }
     } finally {
       setBusy(false);
-    }
-  };
-
-  const sendExisting = async (id: string) => {
-    const res = await fetch("/api/broadcasts", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id, status: "sent" }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.broadcasts)) setList(data.broadcasts);
-      window.dispatchEvent(new Event("ali-store-updated"));
     }
   };
 
@@ -117,6 +104,10 @@ export default function BroadcastsPage() {
             {filterSent ? "Show all" : "History"}
           </button>
         </div>
+      </div>
+
+      <div className="notice">
+        Drafts only for now: sending isn&apos;t connected. WhatsApp needs Meta-approved templates for bulk messages.
       </div>
 
       {showTemplates && (
@@ -176,15 +167,6 @@ export default function BroadcastsPage() {
                 }}
               >
                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  {b.status !== "sent" && (
-                    <button
-                      className="btn ghost"
-                      style={{ padding: "2px 6px", fontSize: 10 }}
-                      onClick={() => sendExisting(b.id)}
-                    >
-                      Send now →
-                    </button>
-                  )}
                   <span
                     className={
                       "badge " +
@@ -195,7 +177,7 @@ export default function BroadcastsPage() {
                         : "")
                     }
                   >
-                    {b.status.toUpperCase()}
+                    {b.status}
                   </span>
                 </div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>
@@ -220,10 +202,10 @@ export default function BroadcastsPage() {
           <div className="form-input" style={{ marginBottom: 8 }}>
             <label>AUDIENCE</label>
             <select value={audience} onChange={e => setAudience(e.target.value)} style={{ fontSize: 13, padding: "8px 10px" }}>
-              <option value="london">London customers (1,245)</option>
-              <option value="manchester">Manchester customers (892)</option>
-              <option value="hot">Hot leads · UK-wide (48)</option>
-              <option value="buyers">Past buyers · UK-wide (2,104)</option>
+              <option value="london">London customers</option>
+              <option value="manchester">Manchester customers</option>
+              <option value="hot">Hot leads · UK-wide</option>
+              <option value="buyers">Past buyers · UK-wide</option>
             </select>
           </div>
           <div className="form-input" style={{ marginBottom: 8 }}>
@@ -243,35 +225,14 @@ export default function BroadcastsPage() {
             >
               Save draft
             </button>
-            <button
-              className="btn"
-              onClick={() => submitBroadcast("schedule")}
-              disabled={busy || !msg.trim()}
-            >
-              Schedule
-            </button>
-            <button
-              className="btn primary"
-              style={{ marginLeft: "auto" }}
-              onClick={() => submitBroadcast("send")}
-              disabled={busy || !msg.trim()}
-            >
-              Send now
+            <button className="btn primary" style={{ marginLeft: "auto" }} disabled title="Needs Meta-approved templates">
+              Send (not connected)
             </button>
           </div>
-          <div
-            style={{
-              fontSize: 10,
-              color: "var(--muted)",
-              fontFamily: "var(--font-jbmono)",
-              textTransform: "uppercase",
-              letterSpacing: "0.12em",
-              paddingTop: 10,
-              borderTop: "1px solid var(--line)",
-            }}
-          >
-            META APPROVED TEMPLATES ONLY · SESSION MSGS WITHIN 24H
-          </div>
+          <p className="hint" style={{ paddingTop: 10, borderTop: "1px solid var(--line)" }}>
+            WhatsApp only allows bulk messages through templates Meta has approved, sent to people who opted in to
+            WhatsApp marketing. Use Email for offers until templates are set up.
+          </p>
         </div>
       </div>
     </>

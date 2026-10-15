@@ -236,18 +236,18 @@ export default function PlansPage() {
       <div className="filters-bar">
         {kinds.map(k => (
           <button key={k} className={"chip " + (kind === k ? "on" : "")} onClick={() => setKind(k)}>
-            {k.toUpperCase()} · {k === "All" ? allRows.length : allRows.filter(r => r.kind === k).length}
+            {k}{" "}<span className="mono" style={{ opacity: 0.7 }}>{k === "All" ? allRows.length : allRows.filter(r => r.kind === k).length}</span>
           </button>
         ))}
         <span style={{ width: 1, background: "var(--line)", alignSelf: "stretch", margin: "0 4px" }} />
         {networks.map(n => (
           <button key={n} className={"chip " + (network === n ? "on" : "")} onClick={() => setNetwork(n)}>
-            {n === "All" ? "ALL NETWORKS" : n.toUpperCase()} · {n === "All" ? allRows.length : allRows.filter(r => r.network === n).length}
+            {n === "All" ? "All networks" : n}{" "}<span className="mono" style={{ opacity: 0.7 }}>{n === "All" ? allRows.length : allRows.filter(r => r.network === n).length}</span>
           </button>
         ))}
         <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)", display: "flex", gap: 4 }}>
-          <button className={"chip " + (sort === "price-asc" ? "on" : "")} onClick={() => setSort("price-asc")}>£ LOW → HIGH</button>
-          <button className={"chip " + (sort === "price-desc" ? "on" : "")} onClick={() => setSort("price-desc")}>£ HIGH → LOW</button>
+          <button className={"chip " + (sort === "price-asc" ? "on" : "")} onClick={() => setSort("price-asc")}>Price: low to high</button>
+          <button className={"chip " + (sort === "price-desc" ? "on" : "")} onClick={() => setSort("price-desc")}>Price: high to low</button>
         </span>
       </div>
 

@@ -15,13 +15,13 @@ type PromptVersion = {
 export default function BotPage() {
   const [prompt, setPrompt] = useState(DEFAULT_BOT_PROMPT);
   const [model, setModel] = useState<"haiku" | "sonnet" | "opus">("haiku");
-  const [temperature, setTemperature] = useState<number>(0.4);
   const [maxTokens, setMaxTokens] = useState<number>(512);
   const [escalateOn, setEscalateOn] = useState({
     discount: true,
     complaint: true,
     human: true,
     longConv: false,
+    payment: true,
   });
   const [hash, setHash] = useState("a3f9b2");
   const [updatedAt, setUpdatedAt] = useState("Aug 24, 15:42");
@@ -45,9 +45,8 @@ export default function BotPage() {
       if (cfg) {
         setPrompt(cfg.prompt);
         setModel(cfg.model || "haiku");
-        setTemperature(cfg.temperature ?? 0.4);
         setMaxTokens(cfg.maxTokens || 512);
-        if (cfg.escalateOn) setEscalateOn(cfg.escalateOn);
+        if (cfg.escalateOn) setEscalateOn({ payment: true, ...cfg.escalateOn });
         setHash(cfg.hash || "a3f9b2");
         setUpdatedAt(cfg.updatedAt || "Just now");
         setHistory(cfg.history || []);
@@ -73,7 +72,6 @@ export default function BotPage() {
         body: JSON.stringify({
           prompt,
           model,
-          temperature,
           maxTokens: Number(maxTokens) || 512,
           escalateOn,
         }),
@@ -134,9 +132,9 @@ export default function BotPage() {
   };
 
   const modelLabels: Record<string, string> = {
-    haiku: "claude-haiku-4.5",
-    sonnet: "claude-sonnet-4.5",
-    opus: "claude-opus-4.1",
+    haiku: "Claude Haiku 5.5",
+    sonnet: "Claude Sonnet 5.5",
+    opus: "Claude Opus 5.5",
   };
 
   return (
@@ -252,7 +250,7 @@ export default function BotPage() {
                 </span>
                 <span>{v.savedAt}</span>
                 <span className="mono" style={{ color: "var(--muted)", marginLeft: 10 }}>
-                  {v.model} · temp {v.temperature}
+                  {v.model}
                 </span>
               </div>
               <button
@@ -260,7 +258,6 @@ export default function BotPage() {
                 onClick={() => {
                   setPrompt(v.prompt);
                   setModel((v.model as "haiku" | "sonnet" | "opus") || "haiku");
-                  setTemperature(v.temperature);
                   setMaxTokens(v.maxTokens);
                   setDirty(true);
                   setShowHistory(false);
@@ -293,27 +290,13 @@ export default function BotPage() {
                 setDirty(true);
               }}
             >
-              <option value="haiku">claude-haiku-4.5 (fast, cheap)</option>
-              <option value="sonnet">claude-sonnet-4.5 (smart, escalations)</option>
-              <option value="opus">claude-opus-4.1 (edge cases only)</option>
+              <option value="haiku">Claude Haiku 5.5: fastest, cheapest (recommended)</option>
+              <option value="sonnet">Claude Sonnet 5.5: better on tricky questions</option>
+              <option value="opus">Claude Opus 5.5: most capable, ~40× Haiku&apos;s cost</option>
             </select>
           </div>
           <div className="setting">
-            <label>TEMPERATURE · {temperature.toFixed(1)}</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={temperature}
-              onChange={e => {
-                setTemperature(parseFloat(e.target.value));
-                setDirty(true);
-              }}
-            />
-          </div>
-          <div className="setting">
-            <label>MAX OUTPUT TOKENS</label>
+            <label>MAX REPLY LENGTH (TOKENS)</label>
             <input
               type="number"
               value={maxTokens}
@@ -370,6 +353,17 @@ export default function BotPage() {
                   }}
                 />{" "}
                 Long conversations (10+ msgs)
+              </label>
+              <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={escalateOn.payment}
+                  onChange={e => {
+                    setEscalateOn(s => ({ ...s, payment: e.target.checked }));
+                    setDirty(true);
+                  }}
+                />{" "}
+                Card or bank details shared
               </label>
             </div>
           </div>
