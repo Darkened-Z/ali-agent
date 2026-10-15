@@ -100,7 +100,7 @@ export default function TeamPage() {
             className="btn primary"
             onClick={() => setShowInvite(v => !v)}
           >
-            {showInvite ? "Cancel" : "+ Invite member"}
+            {showInvite ? "Cancel" : "Add member"}
           </button>
         </div>
       </div>
@@ -185,8 +185,12 @@ export default function TeamPage() {
             disabled={!name.trim() || !email.trim()}
             style={{ height: 37 }}
           >
-            Send invite →
+            Add member
           </button>
+          <p className="hint" style={{ gridColumn: "1 / -1", margin: 0 }}>
+            Once added, they create their own login at <span className="mono">/login</span> → “First time? Create your
+            account” using this email. Removing them here revokes access.
+          </p>
         </div>
       )}
 
