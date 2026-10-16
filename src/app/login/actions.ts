@@ -1,7 +1,16 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createAuthClient, isAllowlisted } from "@/lib/auth";
+import { hit } from "@/lib/rateLimit";
+import {
+  checkAdminPassword,
+  createAuthClient,
+  endPasswordSession,
+  isAllowlisted,
+  passwordMode,
+  startPasswordSession,
+} from "@/lib/auth";
 import { appUrl } from "@/lib/email";
 
 export type LoginState = { error?: string; notice?: string };
@@ -12,6 +21,15 @@ export async function signIn(_prev: LoginState, form: FormData): Promise<LoginSt
   const email = String(form.get("email") ?? "").trim();
   const password = String(form.get("password") ?? "");
   const next = String(form.get("next") ?? "");
+  const destination = next.startsWith("/admin") ? next : "/admin";
+
+  if (passwordMode()) {
+    const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (!(await hit(`login:${ip}`, 10, 600))) return { error: "Too many attempts. Try again in 10 minutes." };
+    if (!checkAdminPassword(password)) return { error: "Wrong password." };
+    await startPasswordSession();
+    redirect(destination);
+  }
 
   const supabase = await createAuthClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -25,7 +43,7 @@ export async function signIn(_prev: LoginState, form: FormData): Promise<LoginSt
     return { error: "This account doesn't have access to the admin desk." };
   }
 
-  redirect(next.startsWith("/admin") ? next : "/admin");
+  redirect(destination);
 }
 
 /** Only emails in ADMIN_EMAILS or on the Team page can create an account; anyone else is refused before Supabase is called. */
@@ -75,7 +93,11 @@ export async function updatePassword(_prev: LoginState, form: FormData): Promise
 }
 
 export async function signOut() {
-  const supabase = await createAuthClient();
-  await supabase.auth.signOut();
+  if (passwordMode()) {
+    await endPasswordSession();
+  } else {
+    const supabase = await createAuthClient();
+    await supabase.auth.signOut();
+  }
   redirect("/login");
 }

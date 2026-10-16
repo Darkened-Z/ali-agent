@@ -11,7 +11,7 @@ function clientIp(req: Request): string {
   );
 }
 
-async function hit(key: string, max: number, windowSeconds: number): Promise<boolean> {
+export async function hit(key: string, max: number, windowSeconds: number): Promise<boolean> {
   const sb = getSupabaseAdmin();
   if (sb) {
     const { data, error } = await sb.rpc("hit_rate_limit", {

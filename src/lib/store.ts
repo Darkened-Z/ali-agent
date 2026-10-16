@@ -253,7 +253,8 @@ const DEFAULT_LISTS = LIST_KEYS.filter(k => k !== "contacts");
 
 const snapshots = new WeakMap<DatabaseSchema, Snapshot>();
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+// Without Supabase, Vercel only allows writes under /tmp, which is per-instance and wiped on cold start.
+const DATA_DIR = process.env.VERCEL ? path.join("/tmp", ".data") : path.join(process.cwd(), ".data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const PAGE_SIZE = 1000;
 const ID_CHUNK = 150;
@@ -449,15 +450,13 @@ function createDemoDb(): DatabaseSchema {
 type Identified = { id: string };
 type RecordRow = { collection: ListKey; id: string; data: Identified; sort: number };
 
-// Local dev falls back to a JSON file; production must never silently write to an ephemeral disk.
 function storage(): SupabaseClient | null {
-  const sb = getSupabaseAdmin();
-  if (!sb && process.env.NODE_ENV === "production") {
-    throw new Error(
-      "Supabase is not configured: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
-    );
-  }
-  return sb;
+  return getSupabaseAdmin();
+}
+
+/** True until Supabase is connected: data lives in a temporary file and can reset. */
+export function isTemporaryStorage(): boolean {
+  return !getSupabaseAdmin();
 }
 
 function mergeWithDefaults(parsed: Partial<DatabaseSchema>, seed: DatabaseSchema): DatabaseSchema {
@@ -479,14 +478,17 @@ function listOf(db: DatabaseSchema, key: ListKey): Identified[] {
   return db[key] as unknown as Identified[];
 }
 
+// Demo conversations/leads only appear in local dev, never on a deployed site.
+const SEED_DEMO = process.env.NODE_ENV !== "production";
+
 function readFileDb(): DatabaseSchema {
   if (!fs.existsSync(DB_FILE)) {
-    const seed = createSeedDb(true);
+    const seed = createSeedDb(SEED_DEMO);
     writeFileDb(seed);
     return seed;
   }
   const parsed = JSON.parse(fs.readFileSync(DB_FILE, "utf8")) as Partial<DatabaseSchema>;
-  return mergeWithDefaults(parsed, createSeedDb(true));
+  return mergeWithDefaults(parsed, createSeedDb(SEED_DEMO));
 }
 
 function writeFileDb(db: DatabaseSchema) {

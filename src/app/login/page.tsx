@@ -1,4 +1,5 @@
 import { LoginForm } from "./LoginForm";
+import { passwordMode } from "@/lib/auth";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next, error } = await searchParams;
@@ -10,7 +11,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             That link has expired or was already used. Sign in, or request a new one.
           </p>
         )}
-        <LoginForm next={typeof next === "string" ? next : "/admin"} />
+        <LoginForm next={typeof next === "string" ? next : "/admin"} passwordOnly={passwordMode()} />
       </div>
     </section>
   );

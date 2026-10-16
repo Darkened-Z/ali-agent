@@ -28,7 +28,17 @@ const COPY: Record<Mode, { title: string; sub: string; button: string; busy: str
 
 const ACTIONS = { signin: signIn, signup: signUp, reset: requestPasswordReset };
 
-function ModeForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch: (m: Mode) => void }) {
+function ModeForm({
+  mode,
+  next,
+  passwordOnly,
+  onSwitch,
+}: {
+  mode: Mode;
+  next: string;
+  passwordOnly: boolean;
+  onSwitch: (m: Mode) => void;
+}) {
   const [state, action, pending] = useActionState<LoginState, FormData>(ACTIONS[mode], {});
   const copy = COPY[mode];
 
@@ -37,10 +47,12 @@ function ModeForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
       <h1 className="form-q">{copy.title}</h1>
       <p className="form-sub">{copy.sub}</p>
       <input type="hidden" name="next" value={next} />
-      <div className="form-input">
-        <label htmlFor="email">EMAIL</label>
-        <input id="email" name="email" type="email" autoComplete="email" required autoFocus />
-      </div>
+      {!passwordOnly && (
+        <div className="form-input">
+          <label htmlFor="email">EMAIL</label>
+          <input id="email" name="email" type="email" autoComplete="email" required autoFocus />
+        </div>
+      )}
       {mode !== "reset" && (
         <div className="form-input">
           <label htmlFor="password">{mode === "signup" ? "CHOOSE A PASSWORD (8+ CHARACTERS)" : "PASSWORD"}</label>
@@ -50,6 +62,7 @@ function ModeForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
             type="password"
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
             minLength={mode === "signup" ? 8 : undefined}
+            autoFocus={passwordOnly}
             required
           />
         </div>
@@ -73,7 +86,7 @@ function ModeForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
             Back to sign in
           </button>
         )}
-        {mode === "signin" && (
+        {mode === "signin" && !passwordOnly && (
           <>
             <button type="button" className="btn ghost" onClick={() => onSwitch("signup")}>
               First time? Create your account
@@ -88,8 +101,8 @@ function ModeForm({ mode, next, onSwitch }: { mode: Mode; next: string; onSwitch
   );
 }
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, passwordOnly }: { next: string; passwordOnly: boolean }) {
   const [mode, setMode] = useState<Mode>("signin");
   // Keyed so each mode gets its own form state.
-  return <ModeForm key={mode} mode={mode} next={next} onSwitch={setMode} />;
+  return <ModeForm key={mode} mode={mode} next={next} passwordOnly={passwordOnly} onSwitch={setMode} />;
 }

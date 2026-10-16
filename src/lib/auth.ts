@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { readDb } from "./store";
@@ -11,6 +12,44 @@ function authKeys() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
   return url && anonKey ? { url, anonKey } : null;
+}
+
+// Until Supabase is connected, the admin desk is guarded by a single ADMIN_PASSWORD instead.
+const PASSWORD_COOKIE = "pt_admin";
+
+export function passwordMode(): boolean {
+  return !authKeys() && !!process.env.ADMIN_PASSWORD?.trim();
+}
+
+function passwordSessionToken(): string {
+  return crypto
+    .createHmac("sha256", process.env.ADMIN_PASSWORD!.trim())
+    .update("proxytech-admin-session")
+    .digest("hex");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+
+export function checkAdminPassword(password: string): boolean {
+  return passwordMode() && safeEqual(password, process.env.ADMIN_PASSWORD!.trim());
+}
+
+export async function startPasswordSession() {
+  (await cookies()).set(PASSWORD_COOKIE, passwordSessionToken(), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 14,
+  });
+}
+
+export async function endPasswordSession() {
+  (await cookies()).delete(PASSWORD_COOKIE);
 }
 
 export async function createAuthClient() {
@@ -51,6 +90,10 @@ export async function isAllowlisted(email: string): Promise<boolean> {
  */
 export async function getAdmin(): Promise<Admin | null> {
   if (!authKeys()) {
+    if (passwordMode()) {
+      const token = (await cookies()).get(PASSWORD_COOKIE)?.value ?? "";
+      return safeEqual(token, passwordSessionToken()) ? { email: "admin", name: DEFAULT_NAME } : null;
+    }
     return process.env.NODE_ENV === "production" ? null : { email: "dev@localhost", name: DEFAULT_NAME, dev: true };
   }
   const supabase = await createAuthClient();
