@@ -255,7 +255,7 @@ export default function CheckoutPage() {
                     Next working day by 13:00 (Tracked 24)
                   </div>
                   <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>
-                    Tracking Ref: {confirmedOrder.trackingNumber}
+                    Tracking: {confirmedOrder.trackingNumber || "emailed when dispatched"}
                   </div>
                 </div>
               </div>

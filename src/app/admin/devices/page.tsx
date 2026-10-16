@@ -225,13 +225,13 @@ export default function DevicesPage() {
       <div className="filters-bar">
         {kinds.map(k => (
           <button key={k} className={"chip " + (kind === k ? "on" : "")} onClick={() => setKind(k)}>
-            {k.toUpperCase()} · {k === "All" ? allRows.length : allRows.filter(r => r.kind === k).length}
+            {k}{" "}<span className="mono" style={{ opacity: 0.7 }}>{k === "All" ? allRows.length : allRows.filter(r => r.kind === k).length}</span>
           </button>
         ))}
         <span style={{ width: 1, background: "var(--line)", alignSelf: "stretch", margin: "0 4px" }} />
         {brands.map(b => (
           <button key={b} className={"chip " + (brand === b ? "on" : "")} onClick={() => setBrand(b)}>
-            {b.toUpperCase()} · {b === "All" ? allRows.length : allRows.filter(r => r.brand === b).length}
+            {b === "All" ? "All brands" : b}{" "}<span className="mono" style={{ opacity: 0.7 }}>{b === "All" ? allRows.length : allRows.filter(r => r.brand === b).length}</span>
           </button>
         ))}
       </div>

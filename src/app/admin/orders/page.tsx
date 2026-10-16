@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { OrderRecord } from "@/lib/store";
 
-const statusCycle: OrderRecord["status"][] = ["confirmed", "dispatching", "delivered", "cancelled"];
+const STATUSES: OrderRecord["status"][] = ["confirmed", "dispatching", "delivered", "cancelled"];
+const STATUS_LABEL: Record<OrderRecord["status"], string> = {
+  confirmed: "Confirmed",
+  dispatching: "Dispatched",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
@@ -24,6 +30,22 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  const updateOrder = async (id: string, patch: { status?: OrderRecord["status"]; trackingNumber?: string }) => {
+    if (patch.status === "dispatching") {
+      const order = orders.find(o => o.id === id);
+      if (order && !confirm(`Mark ${id} as dispatched and email ${order.email}?`)) return;
+    }
+    const res = await fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    if (res.ok) {
+      const { order } = await res.json();
+      setOrders(list => list.map(o => (o.id === id ? order : o)));
+    }
+  };
 
   const visible = orders.filter(o => {
     if (filter !== "all" && o.status !== filter) return false;
@@ -84,11 +106,11 @@ export default function AdminOrdersPage() {
     window.dispatchEvent(new Event("ali-store-updated"));
   };
 
-  const statusBadgeClass = (s: OrderRecord["status"]) => {
-    if (s === "confirmed") return "badge new";
-    if (s === "dispatching") return "badge bot";
-    if (s === "delivered") return "badge human";
-    return "badge";
+  const statusTone = (s: OrderRecord["status"]) => {
+    if (s === "confirmed") return "hot";
+    if (s === "dispatching") return "warm";
+    if (s === "delivered") return "won";
+    return "lost";
   };
 
   return (
@@ -103,16 +125,12 @@ export default function AdminOrdersPage() {
         <div className="actions">
           <button className="btn" onClick={exportCsv}>Export CSV</button>
           {orders.length > 0 && (
-            <button
-              className="btn"
-              style={{ color: "#d32f2f", borderColor: "#ffcdd2" }}
-              onClick={clearAllOrders}
-            >
-              Clear all
+            <button className="btn ghost" onClick={clearAllOrders}>
+              Delete all
             </button>
           )}
-          <a href="/checkout" target="_blank" className="btn primary" style={{ textDecoration: "none" }}>
-            + Test Checkout (/checkout)
+          <a href="/checkout" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: "none" }}>
+            Open checkout ↗
           </a>
         </div>
       </div>
@@ -124,22 +142,17 @@ export default function AdminOrdersPage() {
             className={"chip " + (filter === f ? "on" : "")}
             onClick={() => setFilter(f)}
           >
-            {f.toUpperCase()} · {f === "all" ? orders.length : orders.filter(o => o.status === f).length}
+            {f[0].toUpperCase() + f.slice(1)}{" "}
+            <span className="mono" style={{ opacity: 0.7 }}>
+              {f === "all" ? orders.length : orders.filter(o => o.status === f).length}
+            </span>
           </button>
         ))}
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search by order ID, customer, postcode, DPD tracking…"
-          style={{
-            marginLeft: "auto",
-            padding: "4px 10px",
-            border: "1px solid var(--line-strong)",
-            background: "var(--paper)",
-            color: "var(--ink)",
-            fontSize: 12,
-            minWidth: 260,
-          }}
+          placeholder="Search order, customer, postcode or tracking"
+          style={{ marginLeft: "auto", minWidth: 280 }}
         />
       </div>
 
@@ -147,76 +160,97 @@ export default function AdminOrdersPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Order Ref</th>
+              <th>Order</th>
               <th>Placed</th>
               <th>Customer</th>
-              <th>Delivery Destination</th>
-              <th>Order Items</th>
-              <th>Monthly / Upfront</th>
-              <th>DPD Tracking</th>
+              <th>Deliver to</th>
+              <th>Items</th>
+              <th>Price</th>
+              <th>Tracking</th>
               <th>Status</th>
-              <th>Action</th>
+              <th aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
             {visible.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
-                  No orders found. Customers who complete checkout on <a href="/checkout" target="_blank" style={{ textDecoration: "underline", color: "var(--ink)" }}>/checkout</a> will show here automatically.
+                  No orders yet. Anything bought through <a href="/checkout" target="_blank" rel="noreferrer" style={{ textDecoration: "underline", color: "var(--ink)" }}>checkout</a> shows up here.
                 </td>
               </tr>
             ) : (
               visible.map(o => (
                 <tr key={o.id}>
                   <td>
-                    <span className="mono" style={{ fontWeight: 700, color: "var(--signal)" }}>
+                    <span className="mono" style={{ fontWeight: 600 }}>
                       {o.id}
                     </span>
                   </td>
                   <td><span className="mono">{o.createdAt}</span></td>
                   <td>
-                    <div><strong>{o.customerName}</strong></div>
-                    <div className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>{o.phone}</div>
-                    <div style={{ fontSize: 11, color: "var(--muted)" }}>{o.email}</div>
+                    <div style={{ fontWeight: 600 }}>{o.customerName}</div>
+                    <div className="mono" style={{ fontSize: 11.5, color: "var(--muted)" }}>{o.phone}</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{o.email}</div>
                   </td>
                   <td>
                     <div>{o.address}</div>
-                    <div className="mono" style={{ fontWeight: 600 }}>{o.city}, {o.postcode}</div>
+                    <div style={{ color: "var(--muted)" }}>
+                      {o.city}, <span className="mono">{o.postcode}</span>
+                    </div>
                     {o.pacCode && (
-                      <span className="badge" style={{ marginTop: 4, background: "#fdf2f0", borderColor: "#ffaba9", color: "#000" }}>
-                        PAC: {o.pacCode}
+                      <span className="badge" style={{ marginTop: 4 }}>
+                        PAC {o.pacCode}
                       </span>
                     )}
                   </td>
                   <td>
                     {o.items.map((item, idx) => (
-                      <div key={idx} style={{ fontSize: 12 }}>
-                        • <strong>{item.name}</strong>
+                      <div key={idx} style={{ fontSize: 13 }}>
+                        {item.name}
                       </div>
                     ))}
                   </td>
                   <td>
-                    <div style={{ fontWeight: 700 }}>{o.monthlyTotal}</div>
-                    <div className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>{o.upfrontTotal} upfront</div>
+                    <div className="mono" style={{ fontWeight: 600 }}>{o.monthlyTotal}</div>
+                    <div className="mono" style={{ fontSize: 11.5, color: "var(--muted)" }}>{o.upfrontTotal} upfront</div>
                   </td>
                   <td>
-                    <span className="mono" style={{ fontSize: 12, background: "var(--paper-2)", padding: "2px 6px" }}>
-                      {o.trackingNumber}
-                    </span>
+                    <input
+                      className="mono"
+                      defaultValue={o.trackingNumber}
+                      placeholder="Add tracking"
+                      aria-label={`Tracking number for ${o.id}`}
+                      onBlur={e => {
+                        const v = e.target.value.trim();
+                        if (v !== (o.trackingNumber || "")) updateOrder(o.id, { trackingNumber: v });
+                      }}
+                      style={{
+                        width: 140, height: 28, padding: "0 8px", fontSize: 12,
+                        border: "1px solid var(--line)", borderRadius: "var(--r-1)",
+                        background: "transparent", color: "var(--ink)",
+                      }}
+                    />
                   </td>
                   <td>
-                    <span className={statusBadgeClass(o.status)}>
-                      {o.status.toUpperCase()}
-                    </span>
+                    <select
+                      className={"status-select " + statusTone(o.status)}
+                      value={o.status}
+                      aria-label={`Status for ${o.id}`}
+                      onChange={e => updateOrder(o.id, { status: e.target.value as OrderRecord["status"] })}
+                    >
+                      {STATUSES.map(st => (
+                        <option key={st} value={st}>{STATUS_LABEL[st]}</option>
+                      ))}
+                    </select>
                   </td>
                   <td>
                     <button
                       type="button"
-                      style={{ background: "none", border: "none", color: "#c00", cursor: "pointer", fontSize: 13, padding: "2px 6px" }}
+                      className="link-action"
                       title="Delete order"
                       onClick={() => deleteOrder(o.id, o.customerName)}
                     >
-                      ✕
+                      Delete
                     </button>
                   </td>
                 </tr>

@@ -1367,7 +1367,7 @@ export function ThreeStorefront() {
             </button>
             {showTerms && (
               <div className="three-terms-content">
-                <strong>[1] Annual Price Increase:</strong> Monthly plan prices increase each April by a fixed pounds-and-pence amount disclosed at checkout (typically £1.90–£2.50/month on Pay Monthly phones &amp; SIMs and £3.50/month on Home Broadband) from 1 April 2027 and 1 April 2028. All Three &amp; Fonehouse tariffs quoted by Ali Agent disclose exact April 2027 and April 2028 rates upfront in compliance with Ofcom regulations.
+                <strong>[1] Annual Price Increase:</strong> Monthly plan prices increase each April by a fixed pounds-and-pence amount disclosed at checkout (typically £1.90–£2.50/month on Pay Monthly phones &amp; SIMs and £3.50/month on Home Broadband) from 1 April 2027 and 1 April 2028. All Three &amp; Fonehouse tariffs quoted by ProxyTech disclose exact April 2027 and April 2028 rates upfront in compliance with Ofcom regulations.
               </div>
             )}
           </div>
@@ -1424,7 +1424,7 @@ export function ThreeStorefront() {
             <div>
               <h4>Our company &amp; networks</h4>
               <ul>
-                <li><Link href="/admin">Ali Agent Call Center</Link></li>
+                <li><Link href="/admin">ProxyTech Call Center</Link></li>
                 <li><Link href="/admin/leads">Leads CRM</Link></li>
                 <li><Link href="/admin/plans">Tariff Catalogue</Link></li>
                 <li><Link href="/admin/devices">Device Inventory</Link></li>
@@ -1439,7 +1439,7 @@ export function ThreeStorefront() {
           <div className="three-footer__bottom">
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <ThreeLogo size={36} fill="#fff" />
-              <span>© Hutchison 3G UK Limited 2002 - Present · Powered by Ali Agent AI Call Center</span>
+              <span>© Hutchison 3G UK Limited 2002 - Present · Powered by ProxyTech AI Call Center</span>
             </div>
             <div className="three-footer__sister-brands">
               <span>SMARTY</span>
@@ -1453,7 +1453,7 @@ export function ThreeStorefront() {
       </footer>
 
       {/* =====================================================================
-          14. FLOATING ALI AGENT CHAT WIDGET
+          14. FLOATING PROXYTECH CHAT WIDGET
       ===================================================================== */}
       <ChatWidget />
     </div>

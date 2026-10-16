@@ -106,13 +106,11 @@ export default function LeadsPage() {
     }
   };
 
-  const cycleLeadStatus = async (lead: LeadItem) => {
-    const nextIdx = (statusCycle.indexOf(lead.status) + 1) % statusCycle.length;
-    const nextStatus = statusCycle[nextIdx];
+  const setLeadStatus = async (lead: LeadItem, status: LeadStatus) => {
     const res = await fetch("/api/leads", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: lead.id, status: nextStatus }),
+      body: JSON.stringify({ id: lead.id, status }),
     });
     if (res.ok) {
       await loadLeads();
@@ -133,20 +131,19 @@ export default function LeadsPage() {
           <button className="btn" onClick={exportCsv}>Export CSV</button>
           {list.length > 0 && (
             <button
-              className="btn"
-              style={{ color: "#d32f2f", borderColor: "#ffcdd2" }}
+              className="btn ghost"
               onClick={async () => {
-                if (!confirm("Are you sure you want to clear all leads?")) return;
+                if (!confirm(`Delete all ${list.length} leads? This can't be undone.`)) return;
                 await fetch("/api/leads?all=true", { method: "DELETE" });
                 await loadLeads();
                 window.dispatchEvent(new Event("ali-store-updated"));
               }}
             >
-              Clear all
+              Delete all
             </button>
           )}
           <button className="btn primary" onClick={() => setShowAdd(v => !v)}>
-            {showAdd ? "Cancel" : "+ New lead"}
+            {showAdd ? "Cancel" : "Add lead"}
           </button>
         </div>
       </div>
@@ -154,9 +151,9 @@ export default function LeadsPage() {
       {showAdd && (
         <div
           style={{
-            padding: "16px 20px",
+            padding: "16px 28px",
             borderBottom: "1px solid var(--line)",
-            background: "var(--paper-2)",
+            background: "var(--paper)",
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr 1.2fr auto",
             gap: 10,
@@ -169,7 +166,6 @@ export default function LeadsPage() {
               value={newName}
               onChange={e => setNewName(e.target.value)}
               placeholder="e.g. Sarah Jenkins"
-              style={{ fontSize: 13, padding: "8px 10px" }}
             />
           </div>
           <div className="form-input" style={{ marginBottom: 0 }}>
@@ -178,7 +174,6 @@ export default function LeadsPage() {
               value={newPhone}
               onChange={e => setNewPhone(e.target.value)}
               placeholder="+44 7700 900123"
-              style={{ fontSize: 13, padding: "8px 10px" }}
             />
           </div>
           <div className="form-input" style={{ marginBottom: 0 }}>
@@ -187,23 +182,21 @@ export default function LeadsPage() {
               value={newCity}
               onChange={e => setNewCity(e.target.value)}
               placeholder="London"
-              style={{ fontSize: 13, padding: "8px 10px" }}
             />
           </div>
           <div className="form-input" style={{ marginBottom: 0 }}>
-            <label>INTEREST</label>
+            <label>INTERESTED IN</label>
             <input
               value={newInterest}
               onChange={e => setNewInterest(e.target.value)}
               placeholder="iPhone 17 · 256GB · Vodafone"
-              style={{ fontSize: 13, padding: "8px 10px" }}
             />
           </div>
           <button
             className="btn primary"
             onClick={handleCreateLead}
             disabled={!newName.trim() || !newPhone.trim() || saving}
-            style={{ height: 37 }}
+            style={{ height: 38 }}
           >
             {saving ? "Saving…" : "Save lead"}
           </button>
@@ -217,22 +210,17 @@ export default function LeadsPage() {
             className={"chip " + (filter === f ? "on" : "")}
             onClick={() => setFilter(f)}
           >
-            {f.toUpperCase()} · {f === "all" ? list.length : list.filter(l => l.status === f).length}
+            {f[0].toUpperCase() + f.slice(1)}{" "}
+            <span className="mono" style={{ opacity: 0.7 }}>
+              {f === "all" ? list.length : list.filter(l => l.status === f).length}
+            </span>
           </button>
         ))}
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Filter by name, phone, city or interest…"
-          style={{
-            marginLeft: "auto",
-            padding: "4px 10px",
-            border: "1px solid var(--line-strong)",
-            background: "var(--paper)",
-            color: "var(--ink)",
-            fontSize: 12,
-            minWidth: 240,
-          }}
+          placeholder="Search name, phone, city or interest"
+          style={{ marginLeft: "auto", minWidth: 260 }}
         />
       </div>
 
@@ -241,29 +229,38 @@ export default function LeadsPage() {
           <thead>
             <tr>
               <th>ID</th><th>Name</th><th>Phone</th><th>City</th>
-              <th>Interest</th><th>Source</th><th>Score</th><th>Status (click to cycle)</th><th>Updated</th><th>Action</th>
+              <th>Interest</th><th>Source</th><th>Score</th><th>Status</th><th>Updated</th><th aria-label="Actions" />
             </tr>
           </thead>
           <tbody>
             {visible.map(l => (
-              <tr key={l.id} style={{ cursor: "pointer" }}>
-                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.id}</span></td>
-                <td onClick={() => cycleLeadStatus(l)}>{l.name}</td>
-                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.phone}</span></td>
-                <td onClick={() => cycleLeadStatus(l)}>{l.city}</td>
-                <td onClick={() => cycleLeadStatus(l)}>{l.interest}</td>
-                <td onClick={() => cycleLeadStatus(l)}>{l.source}</td>
-                <td onClick={() => cycleLeadStatus(l)}><span className="mono" style={{ color: scoreColor(l.score), fontWeight: 700 }}>{l.score}</span></td>
-                <td onClick={() => cycleLeadStatus(l)}>
-                  <span className={"badge " + (l.status === "hot" ? "new" : l.status === "warm" ? "bot" : l.status === "won" ? "human" : "")}>
-                    {l.status.toUpperCase()}
-                  </span>
+              <tr key={l.id}>
+                <td><span className="mono">{l.id}</span></td>
+                <td>{l.name}</td>
+                <td><span className="mono">{l.phone}</span></td>
+                <td>{l.city}</td>
+                <td>{l.interest}</td>
+                <td>{l.source}</td>
+                <td><span className="mono" style={{ color: scoreColor(l.score), fontWeight: 700 }}>{l.score}</span></td>
+                <td>
+                  <select
+                    className={"status-select " + l.status}
+                    value={l.status}
+                    aria-label={`Status for ${l.name}`}
+                    onChange={e => setLeadStatus(l, e.target.value as LeadStatus)}
+                  >
+                    {statusCycle.map(st => (
+                      <option key={st} value={st}>
+                        {st[0].toUpperCase() + st.slice(1)}
+                      </option>
+                    ))}
+                  </select>
                 </td>
-                <td onClick={() => cycleLeadStatus(l)}><span className="mono">{l.updated}</span></td>
+                <td><span className="mono">{l.updated}</span></td>
                 <td>
                   <button
                     type="button"
-                    style={{ background: "none", border: "none", color: "#c00", cursor: "pointer", fontSize: 13, padding: "2px 6px" }}
+                    className="link-action"
                     title="Delete lead"
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -273,7 +270,7 @@ export default function LeadsPage() {
                       window.dispatchEvent(new Event("ali-store-updated"));
                     }}
                   >
-                    ✕
+                    Delete
                   </button>
                 </td>
               </tr>

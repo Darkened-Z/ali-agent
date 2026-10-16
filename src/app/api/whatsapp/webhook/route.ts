@@ -1,147 +1,189 @@
-import {
-  readDb,
-  generateCatalogueReply,
-  recordChatExchange,
-} from "@/lib/store";
+import crypto from "crypto";
+import { after } from "next/server";
+import { readDb, recordChatExchange, recordCustomerMessage } from "@/lib/store";
+import { requireAdmin } from "@/lib/auth";
+import { generateBotReply, type ChatTurn } from "@/lib/bot";
+import { alertHandoff } from "@/lib/notify";
+import { sendWhatsApp } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
-/**
- * Meta Cloud API Webhook Verification (GET)
- * Example: /api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=ali_agent_verify_a3f9b2&hub.challenge=12345
- */
+type Inbound = { phone: string; name: string; city: string; text: string };
+
+/** Meta Cloud API webhook verification handshake. */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
+  const expected = process.env.META_WA_VERIFY_TOKEN?.trim();
 
-  const db = readDb();
-  const expectedToken =
-    process.env.META_WA_VERIFY_TOKEN?.trim() ||
-    db.settings.whatsapp.verifyToken ||
-    "ali_agent_verify_a3f9b2";
-
-  if (mode === "subscribe" && token === expectedToken) {
-    return new Response(challenge || "OK", {
-      status: 200,
-      headers: { "content-type": "text/plain" },
-    });
+  if (expected && mode === "subscribe" && token === expected && challenge) {
+    return new Response(challenge, { status: 200, headers: { "content-type": "text/plain" } });
   }
-
-  return Response.json(
-    {
-      status: "ready",
-      webhook: "Ali Agent WhatsApp Webhook (Meta Cloud API & Twilio)",
-      verified: mode === "subscribe" ? false : undefined,
-    },
-    { status: mode ? 403 : 200 }
-  );
+  return Response.json({ error: "Verification failed" }, { status: 403 });
 }
 
 /**
- * Inbound WhatsApp Message Handler (POST)
- * Supports:
- * 1. Meta Cloud API JSON payload (`entry[0].changes[0].value.messages[0]`)
- * 2. Twilio WhatsApp Webhook (`From`, `Body`, `ProfileName`)
- * 3. Direct Simulator JSON (`{ phone, name, city, text }`) from Settings / Admin
+ * Inbound messages from Meta Cloud API (signed with X-Hub-Signature-256), Twilio
+ * (signed with X-Twilio-Signature), or the admin Settings simulator (requires a session).
  */
 export async function POST(req: Request) {
+  const raw = await req.text();
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    const params = new URLSearchParams(raw);
+    if (!verifyTwilio(req, params)) {
+      return Response.json({ error: "Invalid signature" }, { status: 403 });
+    }
+    const phone = (params.get("From") || "").replace(/^whatsapp:/i, "");
+    const text = params.get("Body") || "";
+    if (!phone || !text.trim()) return twiml();
+
+    const { reply } = await handleInbound(
+      { phone, name: params.get("ProfileName") || phone, city: "UK · WhatsApp", text },
+      "TWILIO"
+    );
+    return twiml(reply ?? undefined);
+  }
+
+  const metaSignature = req.headers.get("x-hub-signature-256");
+  if (metaSignature) {
+    if (!verifyMeta(raw, metaSignature)) {
+      return Response.json({ error: "Invalid signature" }, { status: 403 });
+    }
+    const value = JSON.parse(raw)?.entry?.[0]?.changes?.[0]?.value;
+    const msg = value?.messages?.[0];
+    // Delivery/read status callbacks carry no message; acknowledge so Meta doesn't retry.
+    if (!msg?.text?.body) return Response.json({ status: "ignored" });
+
+    const phone = `+${String(msg.from).replace(/^\+/, "")}`;
+    const result = await handleInbound(
+      {
+        phone,
+        name: value.contacts?.[0]?.profile?.name || phone,
+        city: "UK · WhatsApp",
+        text: msg.text.body,
+      },
+      "WA CLOUD"
+    );
+    const sent = result.reply ? (await sendWhatsApp(phone, result.reply)).ok : false;
+    return Response.json({ status: "processed", conversationId: result.conversationId, sent });
+  }
+
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
+  let body: Partial<Inbound>;
   try {
-    const contentType = req.headers.get("content-type") || "";
-    let phone = "+44 7700 900412";
-    let name = "WhatsApp Customer";
-    let city = "UK · WhatsApp";
-    let text = "";
+    body = JSON.parse(raw);
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  if (!body.text?.trim()) {
+    return Response.json({ status: "ignored", reason: "Empty message text" });
+  }
+  const result = await handleInbound(
+    {
+      phone: body.phone || "+44 7700 900412",
+      name: body.name || "WhatsApp Customer",
+      city: body.city || "UK · WhatsApp",
+      text: body.text,
+    },
+    "SIMULATOR"
+  );
+  return Response.json({ status: "processed", ...result });
+}
 
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-      // Twilio webhook format
-      const form = await req.formData();
-      phone = String(form.get("From") || phone).replace(/^whatsapp:/i, "");
-      name = String(form.get("ProfileName") || phone);
-      text = String(form.get("Body") || "");
-    } else {
-      const body = await req.json();
+/** Returns the bot's reply, or null when a person has the thread and the bot should stay quiet. */
+async function handleInbound(msg: Inbound, channelLabel: string) {
+  const sessionId = `wa-${msg.phone.replace(/[^0-9]/g, "").slice(-10)}`;
+  const db = await readDb({
+    lists: ["kbArticles", "conversations"],
+    ids: { conversations: [sessionId] },
+  });
+  const thread = db.conversations.find(c => c.id === sessionId);
 
-      // Meta Cloud API format
-      const metaValue = body?.entry?.[0]?.changes?.[0]?.value;
-      if (metaValue?.messages?.[0]) {
-        const msg = metaValue.messages[0];
-        const contact = metaValue.contacts?.[0];
-        phone = msg.from ? `+${String(msg.from).replace(/^\+/, "")}` : phone;
-        name = contact?.profile?.name || phone;
-        text = msg.text?.body || "";
-      } else {
-        // Direct / Simulator JSON format
-        phone = body.phone || phone;
-        name = body.name || name;
-        city = body.city || city;
-        text = body.text || "";
-      }
-    }
-
-    if (!text.trim()) {
-      return Response.json({ status: "ignored", reason: "Empty message text" });
-    }
-
-    const db = readDb();
-    const sessionId = `wa-${phone.replace(/[^0-9]/g, "").slice(-10) || Date.now()}`;
-    const smart = generateCatalogueReply(text, db, 1);
-
-    // Optional: If real Meta Cloud API credentials are set in env, dispatch outbound message
-    const metaToken = process.env.META_WA_ACCESS_TOKEN?.trim();
-    const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID?.trim();
-    let outboundSent = false;
-
-    if (metaToken && metaPhoneId && !phone.includes("900412")) {
-      try {
-        const waRes = await fetch(
-          `https://graph.facebook.com/v20.0/${metaPhoneId}/messages`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${metaToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messaging_product: "whatsapp",
-              to: phone.replace(/[^0-9]/g, ""),
-              type: "text",
-              text: { body: smart.reply.replace(/\*\*/g, "*") },
-            }),
-          }
-        );
-        outboundSent = waRes.ok;
-      } catch {
-        outboundSent = false;
-      }
-    }
-
-    const conv = recordChatExchange({
+  if (thread && (thread.status === "human" || thread.status === "waiting")) {
+    const conv = await recordCustomerMessage({
       sessionId,
       channel: "wa",
-      userName: name,
-      phone,
-      city,
-      userText: text,
-      botText: smart.reply,
-      meta: outboundSent ? "WA CLOUD API · SENT" : "CLAUDE HAIKU · WA",
-      escalated: smart.escalated,
-      escalationReason: smart.escalationReason,
-      priceCard: smart.priceCard,
+      userName: msg.name,
+      phone: msg.phone,
+      city: msg.city,
+      text: msg.text,
     });
-
-    return Response.json({
-      status: "processed",
-      conversationId: conv.id,
-      reply: smart.reply,
-      escalated: smart.escalated,
-      outboundSent,
-    });
-  } catch (e) {
-    return Response.json(
-      { error: "Webhook processing failed", detail: String(e) },
-      { status: 400 }
-    );
+    return { conversationId: conv.id, reply: null, escalated: false };
   }
+
+  const history: ChatTurn[] = (thread?.messages ?? [])
+    .slice(-20)
+    .map(m => ({ role: m.from === "client" ? "user" : "assistant", content: m.text }));
+  const reply = await generateBotReply({
+    db,
+    turns: [...history, { role: "user", content: msg.text }],
+  });
+
+  const conv = await recordChatExchange({
+    sessionId,
+    channel: "wa",
+    userName: msg.name,
+    phone: msg.phone,
+    city: msg.city,
+    userText: msg.text,
+    botText: reply.text,
+    meta: `${reply.label} · ${channelLabel}`,
+    escalated: reply.escalated,
+    escalationReason: reply.escalationReason,
+    priceCard: reply.priceCard,
+  });
+  if (reply.escalated) {
+    after(() => alertHandoff(db.settings, conv, reply.escalationReason ?? "Escalated", msg.text));
+  }
+  return { conversationId: conv.id, reply: reply.text, escalated: reply.escalated };
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+
+function verifyMeta(raw: string, header: string): boolean {
+  const secret = process.env.META_APP_SECRET?.trim();
+  if (!secret) return false;
+  const expected = "sha256=" + crypto.createHmac("sha256", secret).update(raw).digest("hex");
+  return safeEqual(expected, header);
+}
+
+// https://www.twilio.com/docs/usage/webhooks/webhooks-security
+function verifyTwilio(req: Request, params: URLSearchParams): boolean {
+  const token = process.env.TWILIO_AUTH_TOKEN?.trim();
+  const header = req.headers.get("x-twilio-signature");
+  if (!token || !header) return false;
+
+  // Behind Vercel's proxy req.url can differ from the URL Twilio signed, so prefer the configured public origin.
+  const reqUrl = new URL(req.url);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const url = appUrl ? new URL(reqUrl.pathname + reqUrl.search, appUrl).toString() : req.url;
+
+  const payload = [...params.keys()]
+    .filter((k, i, all) => all.indexOf(k) === i)
+    .sort()
+    .reduce((acc, key) => acc + params.getAll(key).map(v => key + v).join(""), url);
+  const expected = crypto.createHmac("sha1", token).update(payload).digest("base64");
+  return safeEqual(expected, header);
+}
+
+function twiml(reply?: string) {
+  const escaped = reply
+    ?.replace(/\*\*/g, "*")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const body = escaped ? `<Message>${escaped}</Message>` : "";
+  return new Response(`<?xml version="1.0" encoding="UTF-8"?><Response>${body}</Response>`, {
+    headers: { "content-type": "text/xml" },
+  });
 }

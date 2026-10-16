@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   conversations as initialConversations,
@@ -11,6 +10,11 @@ import {
 
 type ExtendedConversation = Conversation & { assignee?: string };
 
+const renderBold = (text: string) =>
+  text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+  );
+
 const TEMPLATES = [
   "Sending the Klarna Pay-in-3 checkout link now — takes ~2 min. Which delivery slot works best tomorrow?",
   "To port your number, text PAC to 65075 (free) and reply here with your 9-character code.",
@@ -19,11 +23,11 @@ const TEMPLATES = [
 ];
 
 export function ConversationsView() {
-  const router = useRouter();
   const [list, setList] = useState<ExtendedConversation[]>(initialConversations);
   const [teamList, setTeamList] = useState(initialTeam);
   const [stats, setStats] = useState({ handledToday: 47, escalatedToday: 3 });
   const [activeId, setActiveId] = useState<string>(initialConversations[0].id);
+  const [threadOpen, setThreadOpen] = useState(false);
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   const [replyText, setReplyText] = useState<string>("");
@@ -31,6 +35,7 @@ export function ConversationsView() {
   const [showAssignMenu, setShowAssignMenu] = useState<boolean>(false);
   const [showTemplateMenu, setShowTemplateMenu] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
+  const [sendError, setSendError] = useState("");
 
   const searchRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
@@ -62,7 +67,14 @@ export function ConversationsView() {
     loadConversations();
     const onUpdate = () => loadConversations();
     window.addEventListener("ali-store-updated", onUpdate);
-    return () => window.removeEventListener("ali-store-updated", onUpdate);
+    // New customer messages arrive server-side; refresh the inbox while the tab is visible.
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") loadConversations();
+    }, 5000);
+    return () => {
+      window.removeEventListener("ali-store-updated", onUpdate);
+      clearInterval(timer);
+    };
   }, [loadConversations]);
 
   // ⌘K / Ctrl+K shortcut to focus search
@@ -88,11 +100,11 @@ export function ConversationsView() {
   }, [active?.id, active?.messages?.length]);
 
   const filters = [
-    { key: "all", label: "ALL", count: list.length },
-    { key: "bot", label: "BOT", count: list.filter(c => c.status === "bot").length },
-    { key: "waiting", label: "WAITING", count: list.filter(c => c.status === "waiting").length },
-    { key: "human", label: "HUMAN", count: list.filter(c => c.status === "human").length },
-    { key: "closed", label: "CLOSED", count: list.filter(c => c.status === "closed").length },
+    { key: "all", label: "All", count: list.length },
+    { key: "bot", label: "Bot", count: list.filter(c => c.status === "bot").length },
+    { key: "waiting", label: "Waiting", count: list.filter(c => c.status === "waiting").length },
+    { key: "human", label: "With agent", count: list.filter(c => c.status === "human").length },
+    { key: "closed", label: "Closed", count: list.filter(c => c.status === "closed").length },
   ];
 
   const visible = list.filter(c => {
@@ -140,6 +152,7 @@ export function ConversationsView() {
     const t = replyText.trim();
     if (!t || !active || sending) return;
     setSending(true);
+    setSendError("");
     try {
       const res = await fetch("/api/conversations", {
         method: "POST",
@@ -148,16 +161,18 @@ export function ConversationsView() {
           conversationId: active.id,
           text: t,
           from: "agent",
-          agentName: active.assignee?.split(" ")[0] || "Sam",
           isNote: noteMode,
         }),
       });
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok || data.deliveryError) {
         setReplyText("");
         setNoteMode(false);
         await loadConversations();
         window.dispatchEvent(new Event("ali-store-updated"));
       }
+      if (data.deliveryError) setSendError(data.deliveryError);
+      else if (!res.ok) setSendError(data.error || "Couldn't send that message.");
     } finally {
       setSending(false);
     }
@@ -179,16 +194,7 @@ export function ConversationsView() {
             ref={searchRef}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search leads, phones, plan IDs…"
-            style={{
-              border: "none",
-              background: "transparent",
-              color: "var(--ink)",
-              fontFamily: "inherit",
-              fontSize: 12,
-              width: "100%",
-              outline: "none",
-            }}
+            placeholder="Search name, phone or message"
           />
           {search ? (
             <button
@@ -207,15 +213,9 @@ export function ConversationsView() {
             <kbd>⌘K</kbd>
           )}
         </div>
-        <button
-          className="btn primary"
-          onClick={() => router.push("/admin/broadcasts")}
-        >
-          + New broadcast
-        </button>
       </div>
 
-      <div className="dash-work">
+      <div className={"dash-work" + (threadOpen ? " thread-open" : "")}>
         <div className="col">
           <div className="conv-filters">
             {filters.map(f => (
@@ -224,7 +224,7 @@ export function ConversationsView() {
                 className={"chip " + (filter === f.key ? "on" : "")}
                 onClick={() => setFilter(f.key)}
               >
-                {f.label} ({f.count})
+                {f.label} <span className="mono" style={{ opacity: 0.7 }}>{f.count}</span>
               </button>
             ))}
           </div>
@@ -233,7 +233,10 @@ export function ConversationsView() {
               <button
                 key={c.id}
                 className={"conv " + (active.id === c.id ? "active" : "")}
-                onClick={() => setActiveId(c.id)}
+                onClick={() => {
+                  setActiveId(c.id);
+                  setThreadOpen(true);
+                }}
               >
                 <div className="conv-top">
                   <span className="conv-name">{c.name}</span>
@@ -244,9 +247,11 @@ export function ConversationsView() {
                   <span className="conv-channel">
                     {c.channel === "wa" ? "WhatsApp" : "Web Chat"}{c.city ? ` · ${c.city}` : ""}
                   </span>
-                  {c.isNew && <span className="status-badge new">NEW</span>}
-                  {c.status === "waiting" && <span className="status-badge waiting">WAITING</span>}
-                  {c.status === "human" && <span className="status-badge human">AGENT</span>}
+                  <span style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    {c.status === "waiting" && <span className="status-badge waiting">Waiting</span>}
+                    {c.status === "human" && <span className="status-badge human">Agent</span>}
+                    {c.isNew && <span className="status-badge new">New</span>}
+                  </span>
                 </div>
               </button>
             ))}
@@ -260,80 +265,46 @@ export function ConversationsView() {
 
         <div className="col">
           <div className="thread-head">
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{active.name}</span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-jbmono), monospace",
-                    fontSize: 13,
-                    color: "#64748b",
-                  }}
-                >
-                  {active.phone}
-                </span>
-                {active.city && (
-                  <span style={{ fontSize: 13, color: "#64748b" }}>· {active.city}</span>
-                )}
+            <button className="btn sm mobile-only" onClick={() => setThreadOpen(false)} aria-label="Back to conversations">
+              ← Back
+            </button>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="thread-title" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {active.name}
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                <span
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: "50%",
-                    background: active.channel === "wa" ? "#10b981" : "#0284c7",
-                    display: "inline-block",
-                  }}
-                />
-                <span>{active.channel === "wa" ? "WhatsApp Business" : "Web Live Chat"}</span>
+              <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span className={"badge " + (active.channel === "wa" ? "wa" : "web")}>
+                  {active.channel === "wa" ? "WhatsApp" : "Web chat"}
+                </span>
+                <span className="mono" style={{ whiteSpace: "nowrap" }}>{active.phone}</span>
+                {active.city && <span>· {active.city}</span>}
                 {active.status === "waiting" && (
-                  <span style={{ color: "#b45309", fontWeight: 700, marginLeft: 6 }}>
-                    · Escalation waiting for agent
-                  </span>
+                  <span style={{ color: "var(--warn)", fontWeight: 600 }}>· Waiting for an agent</span>
                 )}
               </div>
             </div>
 
             <div className="thread-actions">
               <button
-                className="btn"
-                style={{
-                  background: active.status === "waiting" ? "#ecfdf5" : "#fffbeb",
-                  borderColor: active.status === "waiting" ? "#a7f3d0" : "#fde68a",
-                  color: active.status === "waiting" ? "#047857" : "#b45309",
-                }}
-                onClick={() =>
-                  updateConvStatus(active.status === "waiting" ? "bot" : "waiting")
-                }
+                className="btn primary"
+                onClick={() => updateConvStatus(active.status === "human" ? "bot" : "human")}
               >
-                {active.status === "waiting" ? "Resume bot ▶" : "Pause bot ⏸"}
+                {active.status === "human" ? "Hand back to bot" : "Take over"}
               </button>
-
+              <button
+                className="btn"
+                onClick={() => updateConvStatus(active.status === "waiting" ? "bot" : "waiting")}
+              >
+                {active.status === "waiting" ? "Resume bot" : "Pause bot"}
+              </button>
               {active.status !== "closed" && (
-                <button
-                  className="btn"
-                  style={{ background: "#ecfdf5", borderColor: "#a7f3d0", color: "#047857" }}
-                  onClick={() => updateConvStatus("closed")}
-                >
-                  Resolve ✓
+                <button className="btn" onClick={() => updateConvStatus("closed")}>
+                  Resolve
                 </button>
               )}
-
               <button
-                className="btn primary"
-                style={{ background: "#0f172a", color: "#ffffff", borderColor: "#0f172a" }}
-                onClick={() =>
-                  updateConvStatus(active.status === "human" ? "bot" : "human")
-                }
-              >
-                {active.status === "human" ? "Hand to bot" : "Take over"}
-              </button>
-
-              <button
-                className="btn"
+                className="btn ghost"
                 title="Delete this conversation"
-                style={{ color: "#b91c1c", borderColor: "#fecaca", background: "#fef2f2" }}
                 onClick={async () => {
                   if (!confirm(`Delete conversation with ${active.name}?`)) return;
                   await fetch(`/api/conversations?id=${encodeURIComponent(active.id)}`, { method: "DELETE" });
@@ -351,21 +322,16 @@ export function ConversationsView() {
             {active.messages?.map((m, i) => (
               <div key={i} className={"msg from-" + m.from}>
                 <div className="msg-bubble">
-                  {m.text}
+                  {renderBold(m.text)}
                   {m.priceCard && (
                     <div className="price-card">
-                      <div>
+                      <div style={{ minWidth: 0 }}>
                         <div className="label">{m.priceCard.label}</div>
-                        <div className="price">{m.priceCard.price}</div>
-                      </div>
-                      <div className="info">
-                        {m.priceCard.info.split("\n").map((line, j) => (
-                          <div key={j}>{line}</div>
-                        ))}
+                        <div className="price" style={{ margin: "6px 0 4px" }}>{m.priceCard.price}</div>
+                        <div className="info">{m.priceCard.info.split("\n").join(" · ")}</div>
                       </div>
                       <button
-                        className="btn primary"
-                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        className="btn primary sm"
                         onClick={() => {
                           setReplyText(`Reserved ${m.priceCard?.label} (${m.priceCard?.price}) — sending checkout link now.`);
                           composerRef.current?.focus();
@@ -380,17 +346,22 @@ export function ConversationsView() {
                   {m.time}
                   {m.meta ? " · " + m.meta : ""}
                 </div>
+                {m.failed && (
+                  <div className="msg-meta" style={{ color: "var(--danger)", fontFamily: "inherit", maxWidth: 360 }}>
+                    {m.failed}
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
           <div className="composer" style={{ position: "relative" }}>
             <div className="composer-suggest">
-              <span>SUGGESTED REPLY</span>
+              <span style={{ color: "var(--muted)", flexShrink: 0 }}>Suggested</span>
               <strong>&ldquo;{suggestedReply}&rdquo;</strong>
               <button
-                className="btn ghost"
-                style={{ marginLeft: "auto" }}
+                className="btn sm"
+                style={{ marginLeft: "auto", flexShrink: 0 }}
                 onClick={() => {
                   setReplyText(suggestedReply);
                   composerRef.current?.focus();
@@ -403,9 +374,10 @@ export function ConversationsView() {
             {showTemplateMenu && (
               <div
                 style={{
-                  border: "1px solid var(--line-strong)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--r-2)",
                   background: "var(--paper-2)",
-                  padding: 8,
+                  padding: 6,
                   display: "grid",
                   gap: 4,
                 }}
@@ -420,23 +392,22 @@ export function ConversationsView() {
                     }}
                     style={{
                       textAlign: "left",
-                      padding: "6px 8px",
+                      padding: "7px 9px",
                       background: "var(--paper)",
                       border: "1px solid var(--line)",
-                      fontSize: 12,
+                      borderRadius: "var(--r-1)",
+                      fontSize: 12.5,
                       color: "var(--ink)",
                       cursor: "pointer",
                     }}
                   >
-                    <span className="mono" style={{ color: "var(--signal)", marginRight: 8 }}>
-                      0{i + 1}
-                    </span>
                     {tpl}
                   </button>
                 ))}
               </div>
             )}
 
+            {sendError && <div className="hint error">{sendError}</div>}
             <div className="composer-input">
               <textarea
                 ref={composerRef}
@@ -451,7 +422,7 @@ export function ConversationsView() {
                 placeholder={
                   noteMode
                     ? "Write an internal timeline note for the team… (Enter to save)"
-                    : "Type a reply, or click / TEMPLATES below. Enter to send, Shift+Enter for newline."
+                    : "Reply to the customer. Enter sends, Shift+Enter adds a line."
                 }
                 style={
                   noteMode
@@ -464,7 +435,7 @@ export function ConversationsView() {
                 onClick={sendReply}
                 disabled={!replyText.trim() || sending}
               >
-                {noteMode ? "Add note →" : "Send →"}
+                {noteMode ? "Add note" : "Send"}
               </button>
             </div>
             <div className="composer-tools">
@@ -480,7 +451,7 @@ export function ConversationsView() {
                   padding: 0,
                 }}
               >
-                / TEMPLATES
+                Templates
               </button>
               <span className="divider" />
               <button
@@ -498,7 +469,7 @@ export function ConversationsView() {
                   padding: 0,
                 }}
               >
-                @ MENTION
+                Mention
               </button>
               <span className="divider" />
               <button
@@ -513,11 +484,11 @@ export function ConversationsView() {
                   padding: 0,
                 }}
               >
-                # NOTE {noteMode ? "(ON)" : ""}
+                {noteMode ? "Internal note: on" : "Internal note"}
               </button>
               <span className="divider" />
               <span style={{ marginLeft: "auto" }}>
-                {noteMode ? "INTERNAL NOTE" : replyText.trim() ? "READY" : "DRAFT"}
+                {noteMode ? "Only your team sees notes" : ""}
               </span>
             </div>
           </div>
@@ -525,7 +496,7 @@ export function ConversationsView() {
 
         <aside className="col rail">
           <div>
-            <h3>Customer Details</h3>
+            <h3>Customer</h3>
             <dl className="kv">
               <dt>Name</dt><dd>{active.name}</dd>
               <dt>Phone</dt><dd><span className="mono">{active.phone}</span></dd>
@@ -538,7 +509,7 @@ export function ConversationsView() {
 
           {active.tags && active.tags.length > 0 && (
             <div>
-              <h3>Product Interest</h3>
+              <h3>Interested in</h3>
               <div className="tags">
                 {active.tags.map(t => (
                   <span key={t} className="tag">{t}</span>
@@ -548,11 +519,11 @@ export function ConversationsView() {
           )}
 
           <div>
-            <h3>Quick Actions</h3>
+            <h3>Quick replies</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <button
                 className="btn"
-                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
+                style={{ justifyContent: "flex-start", width: "100%" }}
                 onClick={() => {
                   setReplyText("Sending the secure checkout link now. Which delivery slot works best for you tomorrow?");
                   composerRef.current?.focus();
@@ -562,11 +533,11 @@ export function ConversationsView() {
                   <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
-                Send Checkout Link
+                Send checkout link
               </button>
               <button
                 className="btn"
-                style={{ justifyContent: "flex-start", width: "100%", background: "#f8fafc", textAlign: "left", display: "flex", alignItems: "center", gap: 8 }}
+                style={{ justifyContent: "flex-start", width: "100%" }}
                 onClick={() => {
                   setReplyText("To port your number to Three, text PAC to 65075 (free) and reply here with your 9-character code.");
                   composerRef.current?.focus();
@@ -576,7 +547,7 @@ export function ConversationsView() {
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                   <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
                 </svg>
-                Send PAC Porting Info
+                Send PAC / porting steps
               </button>
             </div>
           </div>
@@ -596,6 +567,7 @@ export function ConversationsView() {
               </div>
             </div>
           )}
+
         </aside>
       </div>
     </div>

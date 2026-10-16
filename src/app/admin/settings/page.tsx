@@ -7,19 +7,10 @@ const tabs = [
   { key: "general", label: "General" },
   { key: "hours", label: "Business hours" },
   { key: "whatsapp", label: "WhatsApp" },
-  { key: "escalation", label: "Escalation rules" },
   { key: "billing", label: "Billing" },
 ];
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-const escalationRules = [
-  { name: "Discount requested", desc: "'discount', 'price match', 'special price', 'best price', 'cheaper'" },
-  { name: "Complaint keywords", desc: "'complaint', 'refund', 'return', 'faulty', 'broken'" },
-  { name: "Explicit human request", desc: "'human', 'agent', 'person', 'someone', 'advisor'" },
-  { name: "Conversation too long", desc: "After 10 back-and-forth messages" },
-  { name: "Payment / bank details", desc: "Any request touching card, account or payment info" },
-];
 
 const defaultSettings: AppSettings = {
   general: {
@@ -41,8 +32,8 @@ const defaultSettings: AppSettings = {
   whatsapp: {
     provider: "meta",
     phoneNumberId: "1058827740928374",
-    accessToken: "EAAY_demo_token_three_uk",
-    verifyToken: "three_agent_verify_a3f9b2",
+    accessToken: "",
+    verifyToken: "",
     webhookUrl: "https://call.goxx.app/api/whatsapp/webhook",
   },
   escalation: {
@@ -145,7 +136,7 @@ export default function SettingsPage() {
 
   const downloadInvoice = () => {
     const content = [
-      "ALI AGENT UK — MONTHLY INVOICE",
+      "PROXYTECH UK — MONTHLY INVOICE",
       "==============================",
       `Business: ${settings.general.businessName}`,
       `Contact:  ${settings.general.contactEmail}`,
@@ -158,7 +149,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "ali-agent-invoice.txt";
+    a.download = "proxytech-invoice.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -169,7 +160,7 @@ export default function SettingsPage() {
       ...s,
       billing: {
         ...s.billing,
-        plan: isPro ? "Ali Agent · Enterprise Unlimited" : "Ali Agent · Pro plan",
+        plan: isPro ? "ProxyTech · Enterprise Unlimited" : "ProxyTech · Pro plan",
         monthSpend: isPro ? "£299.00" : "£124.80",
       },
     }));
@@ -265,7 +256,7 @@ export default function SettingsPage() {
           {tab === "hours" && (
             <>
               <h2>Business hours</h2>
-              <p className="desc">Outside these hours, the bot handles everything solo. During hours, humans get pinged for escalations.</p>
+              <p className="desc">Outside these hours the bot tells customers when an advisor will be back. Escalation rules live on the Bot prompt page.</p>
               {days.map(d => {
                 const row = settings.hours[d] || { open: "10:00", close: "22:00", enabled: true };
                 return (
@@ -446,32 +437,6 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
-            </>
-          )}
-
-          {tab === "escalation" && (
-            <>
-              <h2>Escalation rules</h2>
-              <p className="desc">When the bot should stop and hand off to a human agent.</p>
-              {escalationRules.map(r => (
-                <div key={r.name} className="form-row">
-                  <div className="label-block"><h4>{r.name}</h4><p>{r.desc}</p></div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-                    <input
-                      type="checkbox"
-                      checked={settings.escalation[r.name] ?? true}
-                      onChange={e => {
-                        setSettings(s => ({
-                          ...s,
-                          escalation: { ...s.escalation, [r.name]: e.target.checked },
-                        }));
-                        setDirty(true);
-                      }}
-                    />
-                    Enabled
-                  </label>
-                </div>
-              ))}
             </>
           )}
 

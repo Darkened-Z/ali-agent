@@ -1,9 +1,12 @@
 import { readDb, writeDb } from "@/lib/store";
+import { requireAdmin } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const db = readDb();
+  const denied = await requireAdmin();
+  if (denied) return denied;
+  const db = await readDb();
   return Response.json({
     customPlans: db.customPlans,
     customDevices: db.customDevices,
@@ -12,9 +15,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = await req.json();
-    const db = readDb();
+    const db = await readDb();
     const now = new Date();
     const stamp = `${now.toLocaleDateString("en-GB", {
       month: "short",
@@ -23,7 +28,7 @@ export async function POST(req: Request) {
 
     if (body.action === "sync") {
       db.lastCatalogueSync = stamp;
-      writeDb(db);
+      await writeDb(db);
       return Response.json({
         lastCatalogueSync: db.lastCatalogueSync,
         customPlans: db.customPlans,
@@ -57,7 +62,7 @@ export async function POST(req: Request) {
         tag: "featured",
       };
       db.customPlans.unshift(plan);
-      writeDb(db);
+      await writeDb(db);
       return Response.json({ plan, customPlans: db.customPlans }, { status: 201 });
     }
 
@@ -72,7 +77,7 @@ export async function POST(req: Request) {
         kind: (body.kind || "New") as "New" | "SIM-free" | "Refurbished",
       };
       db.customDevices.unshift(device);
-      writeDb(db);
+      await writeDb(db);
       return Response.json(
         { device, customDevices: db.customDevices },
         { status: 201 }

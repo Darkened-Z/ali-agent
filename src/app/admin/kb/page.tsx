@@ -21,6 +21,8 @@ export default function KBPage() {
   const [newContent, setNewContent] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [kbError, setKbError] = useState("");
+  const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadKb = useCallback(async () => {
@@ -49,6 +51,7 @@ export default function KBPage() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.kbArticles)) setArticles(data.kbArticles);
+        setKbError(data.failed?.length ? `Couldn't refresh: ${data.failed.join(", ")}` : "");
       }
     } finally {
       setSyncing(false);
@@ -57,11 +60,18 @@ export default function KBPage() {
 
   const handleCreateDoc = async (title: string, category: string, content: string, url?: string) => {
     if (!title.trim()) return;
+    setKbError("");
+    setImporting(true);
     const res = await fetch("/api/kb", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ title, category, content, url }),
-    });
+    }).finally(() => setImporting(false));
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setKbError(data.error || "Couldn't save that article.");
+      return;
+    }
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.kbArticles)) setArticles(data.kbArticles);
@@ -75,14 +85,11 @@ export default function KBPage() {
 
   const handleFileUpload = async (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase() || "";
-    let content = `Uploaded document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-    if (["txt", "md", "csv", "json"].includes(ext)) {
-      try {
-        content = (await file.text()).slice(0, 3000);
-      } catch {
-        // use fallback summary
-      }
+    if (!["txt", "md", "csv", "json"].includes(ext)) {
+      setKbError("Only .txt, .md, .csv and .json files can be read for now. For a PDF or Word file, paste its text into a new article.");
+      return;
     }
+    const content = (await file.text()).slice(0, 20000);
     await handleCreateDoc(file.name.replace(/\.[^.]+$/, ""), "Uploaded", content);
   };
 
@@ -124,7 +131,7 @@ export default function KBPage() {
           <input
             ref={fileRef}
             type="file"
-            accept=".pdf,.docx,.txt,.md,.csv,.json"
+            accept=".txt,.md,.csv,.json"
             style={{ display: "none" }}
             onChange={e => {
               const f = e.target.files?.[0];
@@ -192,6 +199,8 @@ export default function KBPage() {
         </div>
       )}
 
+      {kbError && <div className="notice">{kbError}</div>}
+      {importing && <div className="notice" style={{ color: "var(--muted)", background: "var(--paper-2)" }}>Importing page…</div>}
       <div className="kb-layout">
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <table className="data-table">
@@ -279,7 +288,7 @@ export default function KBPage() {
             style={{ cursor: "pointer" }}
           >
             <strong>Drop files here or click to browse</strong>
-            PDF · DOCX · TXT · Markdown
+            TXT · Markdown · CSV · JSON
           </div>
           <div style={{ marginTop: 24, fontSize: 12, color: "var(--muted)", paddingTop: 16, borderTop: "1px solid var(--line)" }}>
             Or paste a URL to auto-scrape:

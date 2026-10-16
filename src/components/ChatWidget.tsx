@@ -5,27 +5,12 @@ import { ThreeLogo } from "./ThreeLogo";
 
 type PriceCard = { label: string; price: string; info: string; cta: string };
 type Msg = {
-  from: "client" | "bot";
+  from: "client" | "bot" | "agent";
   text: string;
   time: string;
   meta?: string;
   priceCard?: PriceCard;
 };
-
-const CANNED: { match: RegExp; reply: string }[] = [
-  { match: /(iphone 18 pro|18 pro)/i, reply: "iPhone 18 Pro · Three Unlimited Airtime · Save up to **£1,035** when you trade in an eligible phone, with **Unlimited 5G data** and next-day DPD delivery." },
-  { match: /(iphone 17 pro max|17 pro max)/i, reply: "iPhone 17 Pro Max 256 GB · Vodafone · **£58 / mo** · £129 upfront · 24 months · **400 GB 5G** · Unlimited mins & texts. Next-day delivery if you order before 5pm." },
-  { match: /(iphone 17 pro|17 pro)/i, reply: "iPhone 17 Pro 256 GB Silver · Three · **£54 / mo** · £45 upfront · 24 months · **100 GB 5G** · Unlimited mins & texts. Price rises to £56.30 in Apr 2027, £58.60 in Apr 2028." },
-  { match: /(iphone 17|iphon 17)/i, reply: "iPhone 17 256 GB · Three · **£42 / mo** · £25 upfront · 24 months · **100 GB 5G** · Unlimited mins & texts." },
-  { match: /(sim only|sim-only|simo|23 a month)/i, reply: "Three Unlimited Data SIM: **£23.00 / mo** (24m, includes 12GB EU roaming in 49 destinations; rises to £25.30 Apr 27, £27.60 Apr 28), or Three 60GB Rolling 30-day SIM at **£10 / mo**." },
-  { match: /(broadband|home broadband|18 a month)/i, reply: "Three 5G Home Broadband is **£18.00 / mo** on a 24-month plan (plus claim up to **£300** switch credit; rises to £21.50 Apr 27, £25.00 Apr 28). Plug-and-play, no engineer needed." },
-  { match: /(refurb|used|second hand)/i, reply: "Refurbished Google Pixels from **£150** (Pixel 7a Good) up to **£490** (Pixel 10 256 GB Excellent). All SIM-free, graded and warranty-backed." },
-  { match: /(port|pac|mnp)/i, reply: "Porting takes 1 working day once we have your PAC. Text **PAC to 65075** — reply here with the code and I'll set it up." },
-  { match: /(human|agent|person|someone|advisor)/i, reply: "Handing you over now — an advisor will pick this up in under a minute. Anything else you want me to include in the summary?" },
-];
-
-const DEFAULT_REPLY =
-  "One sec — pulling that up. Meanwhile, are you after a **Pay Monthly phone**, an **Unlimited SIM**, **Home Broadband**, or **switching** your number?";
 
 const SUGGEST = [
   "iPhone 17 on Three",
@@ -34,10 +19,14 @@ const SUGGEST = [
   "Talk to human",
 ];
 
+const SESSION_RE = /^web-[0-9a-f-]{36}$/i;
+const newSessionId = () => "web-" + crypto.randomUUID();
+const POLL_MS = 4000;
+
 const OPENING: Msg[] = [
   {
     from: "bot",
-    text: "Hi! Welcome to Three · Ali Agent. Ask me about Pay Monthly phones, Unlimited SIMs, 5G Home Broadband, or switching your number.",
+    text: "Hi! Welcome to Three · ProxyTech. Ask me about Pay Monthly phones, Unlimited SIMs, 5G Home Broadband, or switching your number.",
     time: "Just now",
   },
 ];
@@ -49,12 +38,59 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const [typing, setTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string>("web-demo");
   const bodyRef = useRef<HTMLDivElement>(null);
+  const serverCount = useRef(0);
+  const handoffShown = useRef(false);
+
+  // Restore this visitor's thread after a reload, then keep picking up staff replies.
+  useEffect(() => {
+    if (!SESSION_RE.test(sessionId)) return;
+    let cancelled = false;
+    serverCount.current = 0;
+    fetch(`/api/chat/session?id=${encodeURIComponent(sessionId)}&after=0`, { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (cancelled || !data) return;
+        serverCount.current = data.total;
+        if (data.messages.length) {
+          setMessages([
+            ...OPENING,
+            ...data.messages.map((m: Msg) => ({ ...m, meta: m.from === "agent" ? "ADVISOR" : undefined })),
+          ]);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!open || !SESSION_RE.test(sessionId)) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `/api/chat/session?id=${encodeURIComponent(sessionId)}&after=${serverCount.current}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        serverCount.current = data.total;
+        const fromStaff: Msg[] = data.messages
+          .filter((m: Msg) => m.from === "agent")
+          .map((m: Msg) => ({ ...m, meta: "ADVISOR" }));
+        if (fromStaff.length) setMessages(m => [...m, ...fromStaff]);
+      } catch {
+        // next tick retries
+      }
+    }, POLL_MS);
+    return () => clearInterval(timer);
+  }, [open, sessionId]);
 
   useEffect(() => {
     try {
       let sid = localStorage.getItem("ali-widget-session");
-      if (!sid) {
-        sid = "web-" + Math.random().toString(36).slice(2, 8);
+      if (!sid || !SESSION_RE.test(sid)) {
+        sid = newSessionId();
         localStorage.setItem("ali-widget-session", sid);
       }
       setSessionId(sid);
@@ -83,10 +119,11 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
       setTyping(true);
 
       const history = [...messages, nextClient]
-        .filter(m => m.from === "client" || m.from === "bot")
+        .filter(m => m.text.trim() && m.meta !== "NOT SENT")
+        .slice(-30)
         .map(m => ({
           role: m.from === "client" ? ("user" as const) : ("assistant" as const),
-          content: m.text,
+          content: m.text.slice(0, 4000),
         }));
 
       try {
@@ -96,7 +133,8 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
           body: JSON.stringify({ sessionId, messages: history }),
         });
 
-        if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+        if (res.status === 429) throw new Error((await res.json()).error);
+        if (!res.ok || !res.body) throw new Error("Sorry, I couldn't connect just now — please try again.");
 
         let index = -1;
         setMessages(m => {
@@ -128,7 +166,17 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
               acc += data.text;
               const snapshot = acc;
               setMessages(m => m.map((msg, i) => (i === index ? { ...msg, text: snapshot } : msg)));
+            } else if (event === "done" && data.handoff) {
+              const show = !handoffShown.current;
+              handoffShown.current = true;
+              serverCount.current += 1;
+              setMessages(m =>
+                show
+                  ? m.map((msg, i) => (i === index ? { ...msg, text: data.notice, meta: "ADVISOR" } : msg))
+                  : m.filter((_, i) => i !== index)
+              );
             } else if (event === "done") {
+              serverCount.current += 2;
               setMessages(m =>
                 m.map((msg, i) =>
                   i === index
@@ -146,15 +194,13 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
             }
           }
         }
-      } catch {
-        const hit = CANNED.find(c => c.match.test(t));
-        const reply = hit ? hit.reply : DEFAULT_REPLY;
+      } catch (err) {
+        const reply =
+          err instanceof Error && err.message ? err.message : "Sorry, I couldn't connect just now — please try again.";
         setMessages(m => {
           const last = m[m.length - 1];
-          if (last?.from === "bot" && last.text === "") {
-            return [...m.slice(0, -1), { from: "bot", text: reply, time: now, meta: "FALLBACK · CANNED" }];
-          }
-          return [...m, { from: "bot", text: reply, time: now, meta: "FALLBACK · CANNED" }];
+          const note: Msg = { from: "bot", text: reply, time: now, meta: "NOT SENT" };
+          return last?.from === "bot" && last.text === "" ? [...m.slice(0, -1), note] : [...m, note];
         });
         setTyping(false);
       }
@@ -178,7 +224,8 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
   }, [send]);
 
   const resetChat = () => {
-    const nextSid = "web-" + Math.random().toString(36).slice(2, 8);
+    const nextSid = newSessionId();
+    handoffShown.current = false;
     try {
       localStorage.setItem("ali-widget-session", nextSid);
     } catch {
@@ -268,7 +315,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
         </div>
         <div>
           <div className="who" style={{ fontWeight: 700, color: "#000" }}>
-            Three · Ali Agent AI
+            Three · ProxyTech AI
           </div>
           <div className="status" style={{ color: "#000", opacity: 0.8 }}>
             <span className="dot" style={{ background: "#000" }} />
@@ -355,7 +402,7 @@ export function ChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
           →
         </button>
       </div>
-      <div className="widget-brand">THREE UK · POWERED BY ALI AGENT · {sessionId.toUpperCase()}</div>
+      <div className="widget-brand">THREE UK · POWERED BY PROXYTECH · {sessionId.toUpperCase()}</div>
     </div>
   );
 }

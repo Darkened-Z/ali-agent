@@ -17,6 +17,7 @@ export type Conversation = {
   score?: number;
   source?: string;
   firstSeen?: string;
+  updatedAt?: string;
   tags?: string[];
   timeline?: { time: string; who: string; what: string }[];
   messages?: {
@@ -24,6 +25,7 @@ export type Conversation = {
     text: string;
     time: string;
     meta?: string;
+    failed?: string;
     priceCard?: { label: string; price: string; info: string; cta: string };
   }[];
 };
@@ -222,7 +224,7 @@ export const broadcasts = [
 ];
 
 /* ---------- BOT PROMPT ---------- */
-export const DEFAULT_BOT_PROMPT = `You are Ali Agent — a friendly, knowledgeable sales assistant for a UK mobile & SIM retailer that resells Fonehouse tariffs. You speak to shoppers on WhatsApp and the website widget.
+export const DEFAULT_BOT_PROMPT = `You are ProxyTech — a friendly, knowledgeable sales assistant for a UK mobile & SIM retailer that resells Fonehouse tariffs. You speak to shoppers on WhatsApp and the website widget.
 
 RESPOND IN ENGLISH. Keep replies short — 1–2 sentences max unless quoting a full tariff or spec. British English (colour, mum, mobile).
 

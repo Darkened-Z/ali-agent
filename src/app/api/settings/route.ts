@@ -1,16 +1,21 @@
 import { readDb, writeDb, type AppSettings } from "@/lib/store";
+import { requireAdmin } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const db = readDb();
+  const denied = await requireAdmin();
+  if (denied) return denied;
+  const db = await readDb();
   return Response.json({ settings: db.settings });
 }
 
 export async function PUT(req: Request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = (await req.json()) as Partial<AppSettings>;
-    const db = readDb();
+    const db = await readDb();
     db.settings = {
       ...db.settings,
       ...body,
@@ -20,7 +25,7 @@ export async function PUT(req: Request) {
       escalation: { ...db.settings.escalation, ...(body.escalation ?? {}) },
       billing: { ...db.settings.billing, ...(body.billing ?? {}) },
     };
-    writeDb(db);
+    await writeDb(db);
     return Response.json({ settings: db.settings });
   } catch (e) {
     return Response.json(

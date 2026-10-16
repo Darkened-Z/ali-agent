@@ -119,7 +119,7 @@ export function LeadForm() {
           <h4>What happens next</h4>
           <p>Your request goes straight to the call center. An agent picks it up, calls you at your preferred time, and closes the loop.</p>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 20 }}>
-            Data stays with Ali Agent. Never shared, never sold.
+            Data stays with ProxyTech. Never shared, never sold.
           </p>
         </div>
       </div>
@@ -130,7 +130,7 @@ export function LeadForm() {
     <div className="form-stage">
       <div className="form-frame">
         <div className="form-topline">
-          <span>ALI AGENT · REQUEST</span>
+          <span>PROXYTECH · REQUEST</span>
           <span className="step">STEP {String(step).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
         </div>
         <div className="form-progress">
@@ -273,7 +273,7 @@ export function LeadForm() {
           })}
         </ol>
         <p style={{ marginTop: 20, fontSize: 12, color: "var(--muted)" }}>
-          Data stays with Ali Agent. Never shared, never sold.
+          Data stays with ProxyTech. Never shared, never sold.
         </p>
       </div>
     </div>
